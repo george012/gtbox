@@ -1,0 +1,86 @@
+<!-- TOC -->
+
+- [1. 说明](#1-说明)
+    - [1.1. 针对windows](#11-针对windows)
+- [2. 使用](#2-使用)
+- [3. 依赖](#3-依赖)
+- [4. 二开Build](#4-二开build)
+- [5. 必要支持](#5-必要支持)
+- [6. 功能](#6-功能)
+
+<!-- /TOC -->
+
+
+# 1. 说明
+* <font color=red>只保留2个可运行版本，方便维护</font>
+
+## 1.1. 针对windows
+* Windows 开启administrator权限
+* IDE 全局用户安装
+* 如果目前已经是单用户安装 在`IDE` →`属性` → `兼容性`中设置`以管理员的身份启用`   
+* 内置 git config 强制 `LF`
+* 强制 `LF` 设置
+    ```
+    git config --global core.autocrlf input
+    
+    git config --global core.safecrlf true
+    ```
+
+# 2. 使用
+* 在项目根目录下执行
+```
+wget --no-check-certificate https://raw.githubusercontent.com/george012/gtgo/master/install_gtgo.sh && chmod +x ./install_gtgo.sh && ./install_gtgo.sh
+
+```
+
+# 3. 依赖
+```
+// scp
+go get -u github.com/bramvdbogaerde/go-scp@latest
+
+// excel
+go get -u github.com/qax-os/excelize/v2@latest
+// req 包
+go get -u github.com/imroc/req/v3@latest
+
+// gjson
+go get -u github.com/tidwall/gjson@latest
+
+// ants
+go get -u github.com/panjf2000/ants/v2@latest
+// GBK和UTF-8转换
+go get -u github.com/axgle/mahonia@latest
+```
+
+# 4. 二开Build
+```
+./build 
+```
+*   自动化打包、提交、打Tag、并删除提交冗余Tags
+
+# 5. 必要支持
+*   CGO支持
+*   MAC安装最新版本Xcode及Command Line Tools
+
+
+# 6. 功能
+- [x] CGO支持
+- [x] 自定义加、解密
+- [x] 简单的 SSH Client
+- [x] 简易 SCP 工具
+- [x] 简单的 HTTP Client
+- [x] 简单的 ORM 封装
+- [x] Aliyun SMS 简单处理
+- [x] 日志分片
+- [x] 时间工具
+- [x] 字符串工具
+- [x] 数组工具
+- [x] 系统信息
+- [ ] 跨平台GUI工具---Fyne
+- [ ] 跨平台GUI工具---Wails
+
+
+# 删除所有本地和远端 tag
+```
+git push origin --delete $(git tag -l) && git tag -d $(git tag -l)
+```
