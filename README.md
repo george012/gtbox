@@ -29,7 +29,7 @@
 # 2. 使用
 * 在项目根目录下执行
 ```
-wget --no-check-certificate https://raw.githubusercontent.com/george012/gtgo/master/install_gtgo.sh && chmod +x ./install_gtgo.sh && ./install_gtgo.sh
+wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/master/install_gtbox.sh && chmod +x ./install_gtbox.sh && ./install_gtbox.sh
 
 ```
 
