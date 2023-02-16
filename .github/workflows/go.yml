@@ -83,5 +83,6 @@ jobs:
       - name: Remove Old Release
         run: |
           gh release delete ${{ env.APP_OLD_VERSION }} -y
+          git push origin --delete ${{ env.APP_OLD_VERSION }}
         env:
           GH_TOKEN: ${{ github.token }}
