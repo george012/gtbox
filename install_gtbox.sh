@@ -79,14 +79,14 @@ uninstall() {
     do
         if [ ${OSTYPE} == "Darwin" ] # Darwin
         then
-            rm -rf /usr/local/lib/lib"${libName}"_arm64.dylib
-            rm -rf /usr/local/lib/lib"${libName}".dylib
+            rm -rf /usr/local/lib/lib${libName}_arm64.dylib
+            rm -rf /usr/local/lib/lib${libName}.dylib
         elif [ ${OSTYPE} == "Linux" ] # Linux
         then
-            rm -rf /lib64/lib"${libName}".so
+            rm -rf /lib64/lib${libName}.so
         elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
         then
-            rm -rf c:/Windows/System32/"${libName}".dll
+            rm -rf c:/Windows/System32/${libName}.dll
         else
             echo ${OSTYPE}
         fi
