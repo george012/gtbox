@@ -53,18 +53,18 @@ install() {
             srcPWD=`pwd`
             sudo rm -rf /usr/local/lib/lib${libName}_arm64.dylib
             sudo rm -rf /usr/local/lib/lib${libName}.dylib
-    #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
-            sudo ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${libName}/lib${libName}.dylib /usr/local/lib/lib${libName}.dylib
+    #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@${aVersionNo} ${produckName} && cd ${srcPWD}
+            sudo ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${libName}/lib${libName}.dylib /usr/local/lib/lib${libName}.dylib
             sudo ln -s /usr/local/lib/lib${libName}.dylib /usr/local/lib/lib${libName}_arm64.dylib
 
         elif [ ${OSTYPE} == "Linux" ] # Linux
         then
             rm -rf /lib64/lib${libName}.so
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${libName}/lib${libName}.so /lib64/lib${libName}.so && ldconfig
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${libName}/lib${libName}.so /lib64/lib${libName}.so && ldconfig
         elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
         then
             rm -rf /c/Windows/System32/lib${libName}.dll
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${libName}/${libName}.dll /c/Windows/System32/${libName}.dll
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${libName}/${libName}.dll /c/Windows/System32/${libName}.dll
         else
             echo ${OSTYPE}
         fi
