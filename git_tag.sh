@@ -12,12 +12,6 @@ fileVersionLineNo=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{p
 
 oldfileVersionStr=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
 
-handleVerString=""
-if [[ "$versionStr" =~ ^v.* ]]; then
-    handleVerString =
-fi
-
-
 newVersionStr='const VERSION = ''"'$versionStr'"'
 sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" ./version.go
 
