@@ -2,7 +2,7 @@
 ProductName=gtbox
 
 echo "============================ ${ProductName} ============================"
-echo "  1、安装 ${ProductName}"
+echo "  1、发布 ${ProductName}"
 echo "======================================================================"
 read -p "$(echo -e "请输入版本号[例如；v0.0.1]")" versionStr
 
