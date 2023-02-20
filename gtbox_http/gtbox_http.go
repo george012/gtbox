@@ -56,6 +56,20 @@ func (hc *HttpClient) Get(url string) ([]byte, error) {
 }
 
 // PostWithBasicAuth 带BasicAuth的Post
+func Get(url string, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(5)
+	resp, err := customClient.Get(url)
+	endFunc(resp, err)
+}
+
+// PostWithBasicAuth 带BasicAuth的Post
+func Post(url string, data []byte, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(5)
+	resp, err := customClient.Post(url, "", "", data)
+	endFunc(resp, err)
+}
+
+// PostWithBasicAuth 带BasicAuth的Post
 func PostWithBasicAuth(url string, authName string, authPwd string, data []byte, endFunc func(respData []byte, err error)) {
 	customClient := NewHttpClient(5)
 	resp, err := customClient.Post(url, authName, authPwd, data)
