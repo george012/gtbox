@@ -2,9 +2,8 @@ package gtbox_http
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
+	"io"
 
 	"io/ioutil"
 	"net/http"
@@ -12,98 +11,132 @@ import (
 	"time"
 )
 
-type GTToolsHttpRequest struct {
-	HttpClient          *http.Client
-	CurrentRequest      *http.Request
-	CurrentResponse     *http.Response
-	CurrentResponseBody []byte
-	CurrentError        error
-}
-
 var (
-	HttpRequest *GTToolsHttpRequest
-	Once        sync.Once
-	UserAgent   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-	mutex       sync.Mutex
+	UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 )
 
-func (httpReq *GTToolsHttpRequest) SetUp() {
-	httpReq.HttpClient = &http.Client{
-		Timeout: 5 * time.Second,
+// HttpClient 是一个高并发的 HTTP 客户端封装
+type HttpClient struct {
+	Client       *http.Client
+	RequestCount int
+	mutex        sync.Mutex
+}
+
+// NewHttpClient 返回一个新的 HttpClient 对象
+func NewHttpClient(timeout int) *HttpClient {
+	return &HttpClient{
+		Client: &http.Client{
+			Timeout: time.Duration(timeout) * time.Second,
+		},
 	}
 }
 
-// Instance 单例
-func Instance() *GTToolsHttpRequest {
-	Once.Do(func() {
-		HttpRequest = &GTToolsHttpRequest{}
-		HttpRequest.SetUp()
-	})
-
-	//	每次调用请求置Nil
-	HttpRequest.CurrentRequest = nil
-	HttpRequest.CurrentResponse = nil
-	HttpRequest.CurrentResponseBody = nil
-	HttpRequest.CurrentError = nil
-
-	return HttpRequest
-}
-func RequestGet(url string, successFunc func(respData []byte), errorFuc func()) {
-	Instance().ToRequest(url, "", "", "GET", nil, successFunc, errorFuc)
-}
-
-// RequestPost POST请求
-func RequestPost(url string, data []byte, successFunc func(respData []byte), errorFuc func()) {
-	Instance().ToRequest(url, "", "", "POST", data, successFunc, errorFuc)
-}
-
-// RequestPostWithBasicAuth GET请求
-func RequestPostWithBasicAuth(url string, authName string, authPwd string, data []byte, successFunc func(respData []byte), errorFuc func()) {
-	Instance().ToRequest(url, authName, authPwd, "POST", data, successFunc, errorFuc)
-}
-
-func (httpReq *GTToolsHttpRequest) ToRequest(url string, authName string, authPwd string, method string, data []byte, successFunc func(respData []byte), errorFuc func()) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	//http.post等方法只是在NewRequest上又封装来了一层而已
-	httpReq.CurrentRequest, httpReq.CurrentError = http.NewRequest(method, url, bytes.NewBuffer(data))
-	if httpReq.CurrentError != nil {
-		errors.New(fmt.Sprintf("[请求]---错误----[%s]", httpReq.CurrentError))
-		errorFuc()
-		return
+// Get 发送带 Header 的 GET 请求
+func (hc *HttpClient) Get(url string) ([]byte, error) {
+	hc.mutex.Lock()
+	defer hc.mutex.Unlock()
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errors.New("http new request error: " + err.Error())
 	}
-	//设置Header
-	httpReq.CurrentRequest.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36")
+	req.Header.Add("User-Agent", UserAgent)
+
+	resp, err := hc.Client.Do(req)
+	if err != nil {
+		return nil, errors.New("http do error: " + err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.New("http read error: " + err.Error())
+	}
+
+	return body, nil
+}
+
+// PostWithBasicAuth 带BasicAuth的Post
+func PostWithBasicAuth(url string, authName string, authPwd string, data []byte, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(5)
+	resp, err := customClient.Post(url, authName, authPwd, data)
+	endFunc(resp, err)
+}
+
+// Post 发送带 Header 的 POST 请求
+func (hc *HttpClient) Post(url string, authName string, authPwd string, data []byte) ([]byte, error) {
+	hc.mutex.Lock()
+	defer hc.mutex.Unlock()
+	req, err := http.NewRequest("POST", url, io.NopCloser(bytes.NewReader(data)))
+	if err != nil {
+		return nil, errors.New("http new request error: " + err.Error())
+	}
 
 	//	设置basicAuth
-	if authName != "" && authPwd != "" {
-		httpReq.CurrentRequest.SetBasicAuth(authName, authPwd)
+	if len(authName) > 1 && len(authPwd) > 1 {
+		req.SetBasicAuth(authName, authPwd)
 	}
 
-	httpReq.CurrentResponse, httpReq.CurrentError = httpReq.HttpClient.Do(httpReq.CurrentRequest)
-	if httpReq.CurrentError != nil {
-		errors.New(fmt.Sprintf("[网络请求][返回数据]---错误----[%s]", httpReq.CurrentError))
-		errorFuc()
-		return
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("User-Agent", UserAgent)
+	resp, err := hc.Client.Do(req)
+	if err != nil {
+		return nil, errors.New("http do error: " + err.Error())
 	}
-	defer httpReq.CurrentResponse.Body.Close()
+	defer resp.Body.Close()
 
-	httpReq.CurrentResponseBody, httpReq.CurrentError = ioutil.ReadAll(httpReq.CurrentResponse.Body)
-	if httpReq.CurrentError != nil {
-		errors.New(fmt.Sprintf("[读取Body]---错误----[%s]", httpReq.CurrentError))
-		errorFuc()
-		return
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.New("http read error: " + err.Error())
 	}
 
-	temp := make(map[string]interface{}, 0)
-	httpReq.CurrentError = json.Unmarshal(httpReq.CurrentResponseBody, &temp)
-	if httpReq.CurrentError != nil {
-		errors.New(fmt.Sprintf("[解析JSON]---错误----[%s]", httpReq.CurrentError))
-		errorFuc()
-		temp = nil
-		return
+	return body, nil
+}
+
+// GetWithRetry 带重试的 GET 请求，当请求失败时会自动重试，直到达到最大重试次数
+func (hc *HttpClient) GetWithRetry(url string, maxRetry int) (string, error) {
+	var err error
+	var resp *http.Response
+	for i := 0; i <= maxRetry; i++ {
+		hc.mutex.Lock()
+		resp, err = hc.Client.Get(url)
+		if err == nil {
+			hc.mutex.Unlock()
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return "", errors.New("http read error: " + err.Error())
+			}
+			return string(body), nil
+		}
+
+		hc.RequestCount++
+		hc.mutex.Unlock()
+		time.Sleep(time.Duration(1) * time.Second)
 	}
-	//	测试完JSON格式后置空 可能影响性能，但是不要紧
-	temp = nil
-	successFunc(httpReq.CurrentResponseBody)
+
+	return "", errors.New("http get error: " + err.Error())
+}
+
+// PostWithRetry 带重试的 Post 请求，当请求失败时会自动重试，直到达到最大重试次数
+func (hc *HttpClient) PostWithRetry(url string, contentType string, data []byte, maxRetry int) (string, error) {
+	var err error
+	var resp *http.Response
+	for i := 0; i <= maxRetry; i++ {
+		resp, err = hc.Client.Post(url, contentType, ioutil.NopCloser(bytes.NewReader(data)))
+		if err != nil {
+			// 请求失败，重试
+			continue
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", errors.New("http read error: " + err.Error())
+		}
+
+		return string(body), nil
+	}
+
+	return "", errors.New("http post error: max retry exceeded")
 }
