@@ -8,10 +8,10 @@ echo "  当前版本[-${CurrentVersionString}-]"
 echo "======================================================================"
 read -p "$(echo -e "请输入版本号[例如；v0.0.1]")" inputString
 versionStr=""
-if [[ "$versionStr" =~ ^v.* ]]; then
-    comVersing=${inputString}
+if [[ "$inputString" =~ ^v.* ]]; then
+    versionStr=${inputString}
 else
-    comVersing=v${inputString}
+    versionStr=v${inputString}
 fi
 
 fileVersionLineNo=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $1}'`
