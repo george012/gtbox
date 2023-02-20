@@ -33,9 +33,7 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 // logLevel--日志等级，
 // logMaxSaveTime--默认365天,
 // logSaveType--日志分片格式，默认按天分片，可选按小时分片
-// exitSignalHandle--程序退出监听回调函数
-func SetupGTBox(projectName string, debugToCut bool, logLevel logrus.Level, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, exitSignalHandle func(sigInfo *GTAppSignalInfo)) {
-	gtbox_log.Setup(projectName, debugToCut, logLevel, logMaxSaveDays, logSaveType)
+func SetupGTBox(projectName string, debugToCut bool, logLevel logrus.Level, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType) {
+	gtbox_log.SetupLogTools(projectName, debugToCut, logLevel, logMaxSaveDays, logSaveType)
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s], logLeve=[%s], logpath=[%s] logCutType=[%s] logSaveDays=[%d]\n", gtbox_log.ProjectName, gtbox_log.LogLevel.String(), gtbox_log.LogPath, logSaveType.String(), logMaxSaveDays)
-	GTSysUseSignalWaitAppExit(exitSignalHandle)
 }

@@ -49,22 +49,18 @@ func GTGetLogsDir() string {
 }
 
 func (alog *GTLog) Setup() {
-
 	//	设置Log
 	logrus.SetLevel(LogLevel)
-
-	logrus.SetFormatter(&logrus.TextFormatter{
-		ForceColors:   true,
-		FullTimestamp: true,
-	})
-
-	if runtime.GOOS == "linux" {
-		LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
-	} else {
-		LogPath = "./logs/run" + "_" + ProjectName
-	}
-
 	if LogDebugToCut == true {
+		logrus.SetFormatter(&logrus.TextFormatter{
+			ForceColors:   true,
+			FullTimestamp: true,
+		})
+		if runtime.GOOS == "linux" {
+			LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
+		} else {
+			LogPath = "./logs/run" + "_" + ProjectName
+		}
 		/* 日志轮转相关函数
 		   `WithLinkName` 为最新的日志建立软连接
 		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
@@ -88,7 +84,7 @@ func (alog *GTLog) Setup() {
 	}
 }
 
-func Setup(productName string, debugToCut bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+func SetupLogTools(productName string, debugToCut bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
 	ProjectName = productName
 	LogLevel = settingLogLeve
 	LogSaveMaxDays = logMaxSaveDays
