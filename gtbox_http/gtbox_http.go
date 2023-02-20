@@ -6,10 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 )
@@ -27,6 +25,7 @@ var (
 	Once        sync.Once
 	UserAgent   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
 )
+var mutex sync.Mutex
 
 func (httpReq *GTToolsHttpRequest) SetUp() {
 	httpReq.HttpClient = &http.Client{
@@ -53,10 +52,6 @@ func RequestGet(url string, successFunc func(respData []byte), errorFuc func()) 
 	Instance().ToRequest(url, "", "", "GET", nil, successFunc, errorFuc)
 }
 
-func (httpReq *GTToolsHttpRequest) ToRequestGet(url string, successFunc func(respData []byte), errorFuc func()) {
-	httpReq.ToRequest(url, "", "", "GET", nil, successFunc, errorFuc)
-}
-
 // RequestPost POST请求
 func RequestPost(url string, data []byte, successFunc func(respData []byte), errorFuc func()) {
 	Instance().ToRequest(url, "", "", "POST", data, successFunc, errorFuc)
@@ -67,11 +62,9 @@ func RequestPostWithBasicAuth(url string, authName string, authPwd string, data 
 	Instance().ToRequest(url, authName, authPwd, "POST", data, successFunc, errorFuc)
 }
 
-func (httpReq *GTToolsHttpRequest) ToRequestPost(url string, data []byte, successFunc func(respData []byte), errorFuc func()) {
-	httpReq.ToRequest(url, "", "", "POST", data, successFunc, errorFuc)
-}
-
 func (httpReq *GTToolsHttpRequest) ToRequest(url string, authName string, authPwd string, method string, data []byte, successFunc func(respData []byte), errorFuc func()) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	//http.post等方法只是在NewRequest上又封装来了一层而已
 	httpReq.CurrentRequest, httpReq.CurrentError = http.NewRequest(method, url, bytes.NewBuffer(data))
 	if httpReq.CurrentError != nil {
@@ -113,29 +106,4 @@ func (httpReq *GTToolsHttpRequest) ToRequest(url string, authName string, authPw
 	//	测试完JSON格式后置空 可能影响性能，但是不要紧
 	temp = nil
 	successFunc(httpReq.CurrentResponseBody)
-}
-
-// DownFile 通过Http下载文件
-func (httpReq *GTToolsHttpRequest) DownFile(Url string, savePath string, successFunc func(), errorFuc func()) {
-	httpReq.ToRequestGet(Url, func(respData []byte) {
-		var file *os.File
-		// 创建一个文件用于保存
-		file, httpReq.CurrentError = os.Create(savePath)
-		if httpReq.CurrentError != nil {
-			errors.New(fmt.Sprintf("[创建文件]---失败----[%s]", httpReq.CurrentError))
-			errorFuc()
-			return
-		}
-		defer file.Close()
-
-		// 然后将响应流和文件流对接起来
-		_, httpReq.CurrentError = io.Copy(file, httpReq.CurrentResponse.Body)
-		if httpReq.CurrentError != nil {
-			errors.New(fmt.Sprintf("[将数据写入文件]---失败----[%s]", httpReq.CurrentError))
-			errorFuc()
-			return
-		}
-		successFunc()
-	}, errorFuc)
-
 }
