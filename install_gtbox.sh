@@ -50,8 +50,6 @@ install() {
         && CustomLibs=$(ls -l ${GOPATH}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs |awk '/^d/ {print $NF}') \
         && for alibName in ${CustomLibs}
         do
-            echo "libs cons = "${CustomLibs}
-            echo "handle lib ="${alibName}
             if [ ${OSTYPE} == "Darwin" ] # Darwin
             then
                 srcPWD=`pwd`
