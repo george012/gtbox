@@ -18,13 +18,13 @@ type GTToolsHttpRequest struct {
 	CurrentResponse     *http.Response
 	CurrentResponseBody []byte
 	CurrentError        error
-	mutex               sync.Mutex
 }
 
 var (
 	HttpRequest *GTToolsHttpRequest
 	Once        sync.Once
 	UserAgent   = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+	mutex       sync.Mutex
 )
 
 func (httpReq *GTToolsHttpRequest) SetUp() {
@@ -63,8 +63,8 @@ func RequestPostWithBasicAuth(url string, authName string, authPwd string, data 
 }
 
 func (httpReq *GTToolsHttpRequest) ToRequest(url string, authName string, authPwd string, method string, data []byte, successFunc func(respData []byte), errorFuc func()) {
-	httpReq.mutex.Lock()
-	defer httpReq.mutex.Unlock()
+	mutex.Lock()
+	defer mutex.Unlock()
 	//http.post等方法只是在NewRequest上又封装来了一层而已
 	httpReq.CurrentRequest, httpReq.CurrentError = http.NewRequest(method, url, bytes.NewBuffer(data))
 	if httpReq.CurrentError != nil {
