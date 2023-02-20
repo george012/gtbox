@@ -13,7 +13,7 @@ func GTToolsTimeStringCovertToUTCTime(tiemString string) time.Time {
 
 func GTToolsTimestampCovertToBeijing(timestamp float64) time.Time {
 	beijingLoc, _ := time.LoadLocation("Asia/Shanghai") //上海
-	utcTIme := time.Unix(int64(timestamp), 0)
+	utcTIme := time.Unix(int64(timestamp)/1000, 0)
 	beijingTIme := utcTIme.In(beijingLoc)
 	return beijingTIme
 }
