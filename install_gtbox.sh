@@ -68,7 +68,7 @@ install() {
         fi
     done
 
-    removeCache
+#    removeCache
 }
 
 uninstall() {
@@ -90,9 +90,6 @@ uninstall() {
             echo ${OSTYPE}
         fi
     done
-
-
-    removeCache
 
     find ${GOPATH}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
 }
