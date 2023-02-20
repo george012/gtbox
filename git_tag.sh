@@ -13,4 +13,7 @@ oldfileVersionStr=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{p
 newVersionStr='const VERSION = ''"'$versionStr'"'
 sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" ./version.go
 
-git add . && git commit -m "Update ${versionStr}"  && git tag $versionStr && git push && git push --tags
+APP_VERSION=`git describe --tags `git rev-list --tags --max-count=1`` \
+&& echo APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-2))
+
+git add . && git commit -m "Update ${versionStr}"  && git tag $versionStr && git push && git push --tags git tag -d $APP_OLD_VERSION

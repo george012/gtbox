@@ -78,8 +78,8 @@ jobs:
       - name: Set APP_VERSION env
         run: |
           APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) \
-          && echo APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-1)) >> ${GITHUB_ENV}
-          echo APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-2)) >> ${GITHUB_ENV}
+          && echo APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-2)) >> ${GITHUB_ENV}
+
       - name: Remove Old Release
         run: |
           gh release delete ${{ env.APP_OLD_VERSION }} -y
