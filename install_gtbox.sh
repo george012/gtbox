@@ -24,7 +24,6 @@ removeCache() {
 }
 
 install() {
-    uninstall
 
     go get -u github.com/george012/${ProductName}@latest
 
@@ -89,7 +88,7 @@ uninstall() {
             echo ${OSTYPE}
         fi
     done
-
+    removeCache
     find ${GOPATH}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
 }
 
