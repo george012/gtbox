@@ -1,7 +1,7 @@
 package gtbox_log
 
 import (
-	"github.com/lestrrat-go/file-rotatelogs"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"runtime"
 	"strings"
@@ -40,6 +40,7 @@ var (
 	LogSaveMaxDays int64
 	LogSaveFlag    = GTLogSaveTypeDays
 	LogPath        = "./logs/run"
+	LogDebugToCut  = false //debug模式下是否开启日志分割	默认false方便IDE调试
 )
 
 // GTGetLogsDir 获取Log目录
@@ -48,33 +49,6 @@ func GTGetLogsDir() string {
 }
 
 func (alog *GTLog) Setup() {
-	if runtime.GOOS == "linux" {
-		LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
-	} else {
-		LogPath = "./logs/run" + "_" + ProjectName
-	}
-
-	/* 日志轮转相关函数
-	   `WithLinkName` 为最新的日志建立软连接
-	   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
-	   WithMaxAge 和 WithRotationCount二者只能设置一个
-	    `WithMaxAge` 设置文件清理前的最长保存时间
-	    `WithRotationCount` 设置文件清理前最多保存的个数
-	*/
-	// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
-
-	logRotaionFlag := time.Hour * 24
-
-	if LogSaveFlag == GTLogSaveHours {
-		logRotaionFlag = time.Hour
-	}
-
-	writer, _ := rotatelogs.New(
-		LogPath+".%Y%m%d%H%M",
-		rotatelogs.WithLinkName(LogPath),
-		rotatelogs.WithMaxAge(time.Duration(LogSaveMaxDays)*24*time.Hour),
-		rotatelogs.WithRotationTime(logRotaionFlag),
-	)
 
 	//	设置Log
 	logrus.SetLevel(LogLevel)
@@ -84,14 +58,42 @@ func (alog *GTLog) Setup() {
 		FullTimestamp: true,
 	})
 
-	logrus.SetOutput(writer)
+	if runtime.GOOS == "linux" {
+		LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
+	} else {
+		LogPath = "./logs/run" + "_" + ProjectName
+	}
+
+	if LogDebugToCut == true {
+		/* 日志轮转相关函数
+		   `WithLinkName` 为最新的日志建立软连接
+		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
+		   WithMaxAge 和 WithRotationCount二者只能设置一个
+		    `WithMaxAge` 设置文件清理前的最长保存时间
+		    `WithRotationCount` 设置文件清理前最多保存的个数
+		*/
+		// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
+		logRotaionFlag := time.Hour * 24
+
+		if LogSaveFlag == GTLogSaveHours {
+			logRotaionFlag = time.Hour
+		}
+		writer, _ := rotatelogs.New(
+			LogPath+".%Y%m%d%H%M",
+			rotatelogs.WithLinkName(LogPath),
+			rotatelogs.WithMaxAge(time.Duration(LogSaveMaxDays)*24*time.Hour),
+			rotatelogs.WithRotationTime(logRotaionFlag),
+		)
+		logrus.SetOutput(writer)
+	}
 }
 
-func Setup(productName string, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+func Setup(productName string, debugToCut bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
 	ProjectName = productName
 	LogLevel = settingLogLeve
 	LogSaveMaxDays = logMaxSaveDays
 	LogSaveFlag = logSaveType
+	LogDebugToCut = debugToCut
 	Instance().Setup()
 }
 
