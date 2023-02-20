@@ -15,6 +15,6 @@ sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" ./v
 
 REV_LIST=`git rev-list --tags --max-count=1`
 APP_VERSION=`git describe --tags $REV_LIST`
-APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-2))
+APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-1))
 
 git add . && git commit -m "Update ${versionStr}"  && git tag $versionStr && git push && git push --tags && git tag -d $APP_OLD_VERSION
