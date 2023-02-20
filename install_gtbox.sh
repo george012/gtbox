@@ -48,26 +48,21 @@ install() {
     aVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
     aVersionNo=`echo "${aVersionString}" | awk -F "v" '{print $2}'`
 
-    echo $aVersion
-    echo $aVersionNo
-
-    for libName in ${CustomLibs}
+    for alibName in ${CustomLibs}
     do
         if [ ${OSTYPE} == "Darwin" ] # Darwin
         then
             srcPWD=`pwd`
-
+            echo "handle Lib = "${alibName}
     #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo}/libs/${libName}/lib${libName}.dylib /usr/local/lib/lib${libName}.dylib
-            ln -s /usr/local/lib/lib${libName}.dylib /usr/local/lib/lib${libName}_arm64.dylib
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs/${alibName}/lib$libName.dylib /usr/local/lib/lib${alibName}.dylib
+            ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
         elif [ ${OSTYPE} == "Linux" ] # Linux
         then
-            rm -rf /lib64/lib${libName}.so
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${libName}/lib${libName}.so /lib64/lib${libName}.so && ldconfig
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@v$aVersionNo/libs/${alibName}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
         elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
         then
-            rm -rf /c/Windows/System32/lib${libName}.dll
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${libName}/${libName}.dll /c/Windows/System32/${libName}.dll
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/${ProductName}@v$aVersionNo/libs/${alibName}/${alibName}.dll /c/Windows/System32/${alibName}.dll
         else
             echo ${OSTYPE}
         fi
