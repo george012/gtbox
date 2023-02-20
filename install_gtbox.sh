@@ -23,7 +23,7 @@ GetOSType(){
 }
 
 removeCache() {
-    rm -rf ./version.go
+    rm -rf ./${ProductName}_version.go
     rm -rf ./install_${ProductName}.sh
 }
 
@@ -43,9 +43,13 @@ install() {
         find ${GOPATH}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
     fi
 
-    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/version.go
-    aVersion=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
-    aVersionNo=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
+    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/version.go ./${ProductName}_version.go
+    aVersion=`cat ./gtbox_version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
+    aVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
+    aVersionNo=`echo "${aVersionString}" | awk -F "v" '{print $2}'`
+
+    echo $aVersion
+    echo $aVersionNo
 
     for libName in ${CustomLibs}
     do
@@ -53,8 +57,8 @@ install() {
         then
             srcPWD=`pwd`
 
-    #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@${aVersionNo} ${produckName} && cd ${srcPWD}
-            ln -s ${GOPATH}/pkg/mod/github.com/george012/gtbox@${aVersionNo}/libs/${libName}/lib${libName}.dylib /usr/local/lib/lib${libName}.dylib
+    #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
+            ln -s ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo}/libs/${libName}/lib${libName}.dylib /usr/local/lib/lib${libName}.dylib
             ln -s /usr/local/lib/lib${libName}.dylib /usr/local/lib/lib${libName}_arm64.dylib
         elif [ ${OSTYPE} == "Linux" ] # Linux
         then
