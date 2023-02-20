@@ -1,14 +1,22 @@
 #!/bin/bash
 ProductName=gtbox
-
+aVersion=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
+CurrentVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
 echo "============================ ${ProductName} ============================"
-echo "  1、发布 ${ProductName}"
+echo "  1、发布 [-${ProductName}-]"
+echo "  当前版本[-${CurrentVersionString}-]"
 echo "======================================================================"
 read -p "$(echo -e "请输入版本号[例如；v0.0.1]")" versionStr
 
 fileVersionLineNo=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $1}'`
 
 oldfileVersionStr=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
+
+handleVerString=""
+if [[ "$versionStr" =~ ^v.* ]]; then
+    handleVerString =
+fi
+
 
 newVersionStr='const VERSION = ''"'$versionStr'"'
 sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" ./version.go
