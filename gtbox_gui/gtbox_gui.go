@@ -5,21 +5,21 @@ import (
 	"github.com/george012/gtbox/gtbox_gui/gtbox_gui_wails"
 )
 
-type GTGOGUIFlag int
+type GTBoxGUIFlag int
 
 const (
-	GTGOGUIFlag_Fyne GTGOGUIFlag = iota
-	GTGOGUIFlag_Wails
-	GTGOGUIFlag_None
+	GTBoxGUIFlag_Fyne GTBoxGUIFlag = iota
+	GTBoxGUIFlag_Wails
+	GTBoxGUIFlag_None
 )
 
-func (aFlag GTGOGUIFlag) String() string {
+func (aFlag GTBoxGUIFlag) String() string {
 	switch aFlag {
-	case GTGOGUIFlag_Fyne:
+	case GTBoxGUIFlag_Fyne:
 		return "Fyne"
-	case GTGOGUIFlag_Wails:
+	case GTBoxGUIFlag_Wails:
 		return "Wails"
-	case GTGOGUIFlag_None:
+	case GTBoxGUIFlag_None:
 		return "未知类型"
 	default:
 		return "未知类型"
@@ -27,13 +27,13 @@ func (aFlag GTGOGUIFlag) String() string {
 }
 
 // GetDescription 获取描述
-func (aFlag GTGOGUIFlag) GetDescription() string {
+func (aFlag GTBoxGUIFlag) GetDescription() string {
 	switch aFlag {
-	case GTGOGUIFlag_Fyne:
+	case GTBoxGUIFlag_Fyne:
 		return gtbox_gui_fyne.GTGetDescription()
-	case GTGOGUIFlag_Wails:
+	case GTBoxGUIFlag_Wails:
 		return gtbox_gui_wails.GTGetDescription()
-	case GTGOGUIFlag_None:
+	case GTBoxGUIFlag_None:
 		return ""
 	default:
 		return ""

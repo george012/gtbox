@@ -1,4 +1,4 @@
-package gtgo_sys_test
+package gtbox_sys_test
 
 import (
 	"fmt"

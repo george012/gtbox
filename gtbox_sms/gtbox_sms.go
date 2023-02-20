@@ -8,7 +8,7 @@ import (
 	"github.com/alibabacloud-go/tea/tea"
 )
 
-type GTGoSMS struct {
+type GTBoxSMS struct {
 	SMSToolsAliYunAccessKeyId     string
 	SMSToolsAliYunAccessKeySecret string
 	SMSToolsAliYunTemplateCode    string
@@ -16,13 +16,13 @@ type GTGoSMS struct {
 }
 
 var (
-	SMSTool *GTGoSMS
+	SMSTool *GTBoxSMS
 )
 
 // SetupSMSConfigWithAli 初始化阿里云
 // accessKeyId  accessKeySecret  templateCode:短信模版 signName 签名
-func (aSMS *GTGoSMS) SetupSMSConfigWithAli(accessKeyId string, accessKeySecret string, templateCode string, signName string) {
-	SMSTool = &GTGoSMS{
+func (aSMS *GTBoxSMS) SetupSMSConfigWithAli(accessKeyId string, accessKeySecret string, templateCode string, signName string) {
+	SMSTool = &GTBoxSMS{
 		SMSToolsAliYunAccessKeyId:     accessKeyId,
 		SMSToolsAliYunAccessKeySecret: accessKeySecret,
 		SMSToolsAliYunTemplateCode:    templateCode,

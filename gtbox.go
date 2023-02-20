@@ -25,15 +25,15 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 	exitHandleFunc(aSignal)
 }
 
-// SetupgtboxTools
-// Requred Method
+// SetupGTBox
+// 必须--YES
 // 必须使用此方法初始化工具库,未使用此方法初始化，无法使用完整功能，亦存在兼容性问题
 // projectName--项目名称，
 // logLevel--日志等级，
 // logMaxSaveTime--默认365天,
 // logSaveType--日志分片格式，默认按天分片，可选按小时分片
 // exitSignalHandle--程序退出监听回调函数
-func SetupGTGoTools(projectName string, logLevel logrus.Level, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, exitSignalHandle func(sigInfo *GTAppSignalInfo)) {
+func SetupGTBox(projectName string, logLevel logrus.Level, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, exitSignalHandle func(sigInfo *GTAppSignalInfo)) {
 	gtbox_log.Setup(projectName, logLevel, logMaxSaveDays, logSaveType)
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s], logLeve=[%s], logpath=[%s] logCutType=[%s] logSaveDays=[%d]\n", gtbox_log.ProjectName, gtbox_log.LogLevel.String(), gtbox_log.LogPath, logSaveType.String(), logMaxSaveDays)
 	GTSysUseSignalWaitAppExit(exitSignalHandle)
