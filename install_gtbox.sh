@@ -70,7 +70,7 @@ install() {
         done
     }
 
-#    removeCache
+    removeCache
 }
 
 uninstall() {
