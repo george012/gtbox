@@ -43,7 +43,7 @@ install() {
         find ${GOPATH}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
     fi
 
-    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/version.go ./${ProductName}_version.go
+    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/version.go -O ${ProductName}_version.go
     aVersion=`cat ./gtbox_version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
     aVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
     aVersionNo=`echo "${aVersionString}" | awk -F "v" '{print $2}'`
