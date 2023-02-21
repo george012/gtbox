@@ -1,6 +1,7 @@
 package gtbox_time
 
 import (
+	"github.com/george012/gtbox/gtbox_number"
 	"time"
 )
 
@@ -11,10 +12,16 @@ func GTToolsTimeStringCovertToUTCTime(tiemString string) time.Time {
 	return bTime
 }
 
+// GTToolsTimestampCovertToBeijing	通过时间戳获取北京时间支持10位、13位时间戳
 func GTToolsTimestampCovertToBeijing(timestamp float64) time.Time {
 	beijingLoc, _ := time.LoadLocation("Asia/Shanghai") //上海
-	utcTIme := time.Unix(int64(timestamp)/1000, 0)
-	beijingTIme := utcTIme.In(beijingLoc)
+	var utcTime time.Time
+	if gtbox_number.GetFloat64GetLengthTotal(timestamp) == 10 {
+		utcTime = time.Unix(int64(timestamp), 0)
+	} else if gtbox_number.GetFloat64GetLengthTotal(timestamp) == 13 {
+		utcTime = time.UnixMilli(int64(timestamp))
+	}
+	beijingTIme := utcTime.In(beijingLoc)
 	return beijingTIme
 }
 
