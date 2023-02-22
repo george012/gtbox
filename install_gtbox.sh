@@ -72,7 +72,8 @@ install() {
 uninstall() {
     complate_gopath_dir=${GOPATH}
     GetOSType
-    for libName in ${CustomLibs}
+    CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs |awk '/^d/ {print $NF}') \
+    && for libName in ${CustomLibs}
     do
         if [ ${OSTYPE} == "Darwin" ] # Darwin
         then
@@ -85,7 +86,7 @@ uninstall() {
         then
             ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
             complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
-            rm -rf c:/Windows/System32/${libName}.dll
+            rm -rf /c/Windows/System32/${libName}.dll
         else
             echo ${OSTYPE}
         fi
