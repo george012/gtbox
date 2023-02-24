@@ -12,7 +12,8 @@ import (
 )
 
 var (
-	UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+	DefaultTimeout = 10 // default second
 )
 
 // HttpClient 是一个高并发的 HTTP 客户端封装
@@ -55,16 +56,30 @@ func (hc *HttpClient) Get(url string) ([]byte, error) {
 	return body, nil
 }
 
-// PostWithBasicAuth 带BasicAuth的Post
-func Get(url string, endFunc func(respData []byte, err error)) {
-	customClient := NewHttpClient(5)
+// Get Get请求,timeout 超时时间
+func GetWithTimeOut(url string, timeout int, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(timeout)
 	resp, err := customClient.Get(url)
 	endFunc(resp, err)
 }
 
-// PostWithBasicAuth 带BasicAuth的Post
+// Get Get请求
+func Get(url string, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(DefaultTimeout)
+	resp, err := customClient.Get(url)
+	endFunc(resp, err)
+}
+
+// Post Post请求,timeout 超时时间
+func PostWithTimeOut(url string, timeout int, data []byte, endFunc func(respData []byte, err error)) {
+	customClient := NewHttpClient(timeout)
+	resp, err := customClient.Post(url, "", "", data)
+	endFunc(resp, err)
+}
+
+// Post Post请求
 func Post(url string, data []byte, endFunc func(respData []byte, err error)) {
-	customClient := NewHttpClient(5)
+	customClient := NewHttpClient(DefaultTimeout)
 	resp, err := customClient.Post(url, "", "", data)
 	endFunc(resp, err)
 }
