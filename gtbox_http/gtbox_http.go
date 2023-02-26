@@ -56,7 +56,7 @@ func (hc *HttpClient) Get(url string) ([]byte, error) {
 	return body, nil
 }
 
-// Get Get请求,timeout 超时时间
+// GetWithTimeOut Get请求,timeout 超时时间
 func GetWithTimeOut(url string, timeout int, endFunc func(respData []byte, err error)) {
 	customClient := NewHttpClient(timeout)
 	resp, err := customClient.Get(url)
@@ -70,7 +70,7 @@ func Get(url string, endFunc func(respData []byte, err error)) {
 	endFunc(resp, err)
 }
 
-// Post Post请求,timeout 超时时间
+// PostWithTimeOut Post请求,timeout 超时时间
 func PostWithTimeOut(url string, timeout int, data []byte, endFunc func(respData []byte, err error)) {
 	customClient := NewHttpClient(timeout)
 	resp, err := customClient.Post(url, "", "", data)
@@ -86,7 +86,7 @@ func Post(url string, data []byte, endFunc func(respData []byte, err error)) {
 
 // PostWithBasicAuth 带BasicAuth的Post
 func PostWithBasicAuth(url string, authName string, authPwd string, data []byte, endFunc func(respData []byte, err error)) {
-	customClient := NewHttpClient(5)
+	customClient := NewHttpClient(DefaultTimeout)
 	resp, err := customClient.Post(url, authName, authPwd, data)
 	endFunc(resp, err)
 }
@@ -152,15 +152,15 @@ func (hc *HttpClient) PostWithRetry(url string, contentType string, data []byte,
 	var err error
 	var resp *http.Response
 	for i := 0; i <= maxRetry; i++ {
-		resp, err = hc.Client.Post(url, contentType, ioutil.NopCloser(bytes.NewReader(data)))
+		resp, err = hc.Client.Post(url, contentType, io.NopCloser(bytes.NewReader(data)))
 		if err != nil {
 			// 请求失败，重试
 			continue
 		}
 		defer resp.Body.Close()
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
+		body, errRead := io.ReadAll(resp.Body)
+		if errRead != nil {
 			return "", errors.New("http read error: " + err.Error())
 		}
 
