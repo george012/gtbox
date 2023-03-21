@@ -25,8 +25,9 @@ func GTMD5Encoding(str string) string {
 
 // GTEncryptionGo 自定义加密
 func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
-
 	srcCasting := C.CString(srcString)
+	defer C.free(unsafe.Pointer(srcCasting)) // Free srcCasting memory when function returns
+
 	resultMemSize := C.strlen(srcCasting) * 2
 
 	CStr := (*C.char)(unsafe.Pointer(C.malloc(resultMemSize + 8 + 2)))
@@ -34,15 +35,16 @@ func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
 	C.GT_encryptionStr(srcCasting, CStr, C.CString(keyString))
 
 	retStr := C.GoString(CStr)
-	C.free(unsafe.Pointer(CStr))
+	defer C.free(unsafe.Pointer(CStr))
 
 	return retStr
 }
 
 // GTDecryptionGo 自定义解密
 func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
-
 	srcCasting := C.CString(srcString)
+	defer C.free(unsafe.Pointer(srcCasting)) // Free srcCasting memory when function returns
+
 	resultMemSize := C.strlen(srcCasting) * 2
 
 	CStr := (*C.char)(unsafe.Pointer(C.malloc(resultMemSize)))
@@ -50,7 +52,7 @@ func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
 	C.GT_decryptionStr(srcCasting, CStr, C.CString(keyString))
 
 	retStr := C.GoString(CStr)
-	C.free(unsafe.Pointer(CStr))
+	defer C.free(unsafe.Pointer(CStr))
 
 	return retStr
 }
@@ -59,28 +61,31 @@ func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
 func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resultStr string, stringLength int) {
 
 	srcCasting := C.CString(srcString)
+	defer C.free(unsafe.Pointer(srcCasting)) // Free srcCasting memory when function returns
+
 	resultMemSize := C.strlen(srcCasting) * 2
 
 	CStr := (*C.char)(unsafe.Pointer(C.malloc(resultMemSize + 8 + 2)))
 	C.memset(unsafe.Pointer(CStr), 0, resultMemSize+8+2)
-	C.GT_encryptionStr(srcCasting, CStr, C.CString(keyString))
+	CStrLength := C.GT_encryptionStr(srcCasting, CStr, C.CString(keyString))
 
 	retStr := C.GoString(CStr)
-	C.free(unsafe.Pointer(CStr))
+	defer C.free(unsafe.Pointer(CStr))
 
-	return retStr, int(C.strlen(retStr))
+	return retStr, CStrLength
 }
 
 // GTDecryptionGoWithLength 自定义解密,传入长度
 func GTDecryptionGoWithLength(srcString string, keyString string, stringLength int) (resultStr string) {
 	srcCasting := C.CString(srcString)
+	defer C.free(unsafe.Pointer(srcCasting)) // Free srcCasting memory when function returns
 
 	CStr := (*C.char)(unsafe.Pointer(C.malloc(stringLength)))
 	C.memset(unsafe.Pointer(CStr), 0, stringLength)
 	C.GT_decryptionStr(srcCasting, CStr, C.CString(keyString))
 
 	retStr := C.GoString(CStr)
-	C.free(unsafe.Pointer(CStr))
+	defer C.free(unsafe.Pointer(CStr))
 
 	return retStr
 }
