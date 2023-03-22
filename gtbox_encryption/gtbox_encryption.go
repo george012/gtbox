@@ -67,7 +67,7 @@ func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resul
 
 	CStr := (*C.char)(unsafe.Pointer(C.malloc(resultMemSize + 8 + 2)))
 	C.memset(unsafe.Pointer(CStr), 0, resultMemSize+8+2)
-	CStrLength := C.GT_encryptionStr(srcCasting, CStr, C.CString(keyString))
+	CStrLength := int(C.GT_encryptionStr(srcCasting, CStr, C.CString(keyString)))
 
 	retStr := C.GoString(CStr)
 	defer C.free(unsafe.Pointer(CStr))
@@ -80,8 +80,8 @@ func GTDecryptionGoWithLength(srcString string, keyString string, stringLength i
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting)) // Free srcCasting memory when function returns
 
-	CStr := (*C.char)(unsafe.Pointer(C.malloc(stringLength)))
-	C.memset(unsafe.Pointer(CStr), 0, stringLength)
+	CStr := (*C.char)(unsafe.Pointer(C.malloc(C.size_t(stringLength))))
+	C.memset(unsafe.Pointer(CStr), 0, C.size_t(stringLength))
 	C.GT_decryptionStr(srcCasting, CStr, C.CString(keyString))
 
 	retStr := C.GoString(CStr)
