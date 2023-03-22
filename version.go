@@ -1,3 +1,3 @@
 package gtbox
 
-const VERSION = "v0.0.40"
+const VERSION = "v0.0.41"
