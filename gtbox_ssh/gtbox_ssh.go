@@ -10,12 +10,31 @@ import (
 	"time"
 )
 
+type SSHLoginType int
+
+const (
+	SSHLoginTypePWD SSHLoginType = iota
+	SSHLoginTypeCert
+)
+
+func (logT SSHLoginType) String() string {
+	switch logT {
+	case SSHLoginTypePWD:
+		return "password"
+	case SSHLoginTypeCert:
+		return "key-cert"
+	default:
+		return "密码登录"
+	}
+}
+
 // SSHController 连接Detail信息 struct
 type SSHController struct {
 	Address     string
 	Port        int64
 	User        string
-	Pwd         string
+	Pwd         string       //如果login_type为证书登录pwd为私钥字符串
+	LoginType   SSHLoginType `json:"login_type"`
 	Client      *ssh.Client
 	Session     *ssh.Session
 	LastResult  string
@@ -25,10 +44,11 @@ type SSHController struct {
 
 // CLIConnectInfo 地址信息
 type CLIConnectInfo struct {
-	Address string `json:"address"`
-	Port    int64  `json:"port"`
-	User    string `json:"user"`
-	Pwd     string `json:"pwd"`
+	Address   string       `json:"address"`
+	Port      int64        `json:"port"`
+	User      string       `json:"user"`
+	Pwd       string       `json:"pwd"`
+	LoginType SSHLoginType `json:"login_type"`
 }
 
 // CmdResult 命令行返回值
@@ -59,7 +79,19 @@ func (c *SSHController) Connect() (*SSHController, error) {
 	config := &ssh.ClientConfig{}
 	config.SetDefaults()
 	config.User = c.User
-	config.Auth = []ssh.AuthMethod{ssh.Password(c.Pwd)}
+
+	if c.LoginType == SSHLoginTypeCert {
+
+		signer, s_err := ssh.ParsePrivateKey([]byte(c.Pwd))
+		if s_err != nil {
+			return c, s_err
+		}
+
+		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
+	} else if c.LoginType == SSHLoginTypePWD {
+		config.Auth = []ssh.AuthMethod{ssh.Password(c.Pwd)}
+	}
+
 	config.HostKeyCallback = func(hostname string, remote net.Addr, key ssh.PublicKey) error { return nil }
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%s", c.Address, strconv.FormatInt(c.Port, 10)), config)
 	if nil != err {
@@ -98,6 +130,7 @@ func GTSSHClientRun(cliInfo *CLIConnectInfo, cmds []string, endFunc func(result 
 		Port:        cliInfo.Port,
 		User:        cliInfo.User,
 		Pwd:         cliInfo.Pwd,
+		LoginType:   cliInfo.LoginType,
 		RunCmdLock:  &sync.RWMutex{},
 		ConnectLock: &sync.RWMutex{},
 	}
