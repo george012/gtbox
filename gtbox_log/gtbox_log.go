@@ -1,7 +1,7 @@
 package gtbox_log
 
 import (
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"runtime"
 	"strings"

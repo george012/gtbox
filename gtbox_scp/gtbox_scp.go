@@ -11,6 +11,7 @@ import (
 	"os"
 )
 
+// GTToolsScpSetup 初始化SCP连接
 func GTToolsScpSetup(addressIPAndPort, userName, password string) scp.Client {
 	clientConfig, _ := auth.PasswordKey(userName, password, ssh.InsecureIgnoreHostKey())
 	// Create a new SCP client.
@@ -23,7 +24,9 @@ func GTToolsScpSetup(addressIPAndPort, userName, password string) scp.Client {
 	return client
 }
 
-func GTToolsScpDownloadFileAndRsult(addressIPAndPort, userName, password, srcFilePath, saveFilePath string) bool {
+// GTToolsScpDownloadFileAndResult 使用SCP 下载文件
+// Return [bool] 是否成功
+func GTToolsScpDownloadFileAndResult(addressIPAndPort, userName, password, srcFilePath, saveFilePath string) bool {
 	client := GTToolsScpSetup(addressIPAndPort, userName, password)
 
 	// Create a local file to write to.

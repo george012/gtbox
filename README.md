@@ -77,6 +77,7 @@ go get -u github.com/axgle/mahonia@latest
 - [x] 数组工具
 - [x] 系统信息
 - [x] 超高精度Float64加、减、乘、除运算
+- [x] Bit  Bytes 单位换算工具
 - [ ] 跨平台GUI工具---Fyne
 - [ ] 跨平台GUI工具---Wails
 

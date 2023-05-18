@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-
 	"net/http"
 	"sync"
 	"time"
