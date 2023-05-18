@@ -6,8 +6,8 @@ package gtbox_sys_net_optimize
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
@@ -43,7 +43,7 @@ func getSystemInfo() (int, uint64) {
 }
 
 func readConfig(file string, delimiter string) (map[string]string, error) {
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func applyConfig(file string, delimiter string, newConfig map[string]string) err
 		content += fmt.Sprintf("%s %s %s\n", key, delimiter, value)
 	}
 
-	err = ioutil.WriteFile(file, []byte(content), 0644)
+	err = os.WriteFile(file, []byte(content), 0644)
 	if err != nil {
 		return err
 	}

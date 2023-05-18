@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 
-	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -132,7 +131,7 @@ func (hc *HttpClient) GetWithRetry(url string, maxRetry int) (string, error) {
 			hc.mutex.Unlock()
 			defer resp.Body.Close()
 
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return "", errors.New("http read error: " + err.Error())
 			}
