@@ -1,6 +1,6 @@
 module github.com/george012/gtbox
 
-go 1.17
+go 1.18
 
 require (
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.4
