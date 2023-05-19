@@ -96,3 +96,12 @@ func GTFloat64Div(a, b float64) float64 {
 
 	return f64
 }
+
+// GTBigFLoat2Float64 Float64超高精度运算--除法
+// bigFloat 传入的big.float 指针
+// Return [float64] 返回float64
+func GTBigFLoat2Float64(bigFloat *big.Float) float64 {
+	// 将big.Float类型转换为float64类型
+	float64Val, _ := bigFloat.Float64()
+	return float64Val
+}
