@@ -32,7 +32,7 @@ func Instance() *GTORMMysql {
 func (aMysql *GTORMMysql) OPenMysql(dbUser string, dbPwd string, dbName string, dbAddress string, dbPort int, endFunc func(err error)) {
 	aMysql.mux.Lock()
 	defer aMysql.mux.Unlock()
-	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=Asia%sShanghai", dbUser, dbPwd, dbAddress, dbPort, dbName, "%2F")
+	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC", dbUser, dbPwd, dbAddress, dbPort, dbName)
 	alogleve := logger.Silent
 
 	aMysql.MysqlDB, aMysql.MysqlError = gorm.Open(mysql.Open(connectionStr), &gorm.Config{
