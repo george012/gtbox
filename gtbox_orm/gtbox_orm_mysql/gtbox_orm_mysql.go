@@ -3,6 +3,7 @@ package gtbox_orm_mysql
 import (
 	"errors"
 	"fmt"
+	"github.com/george012/gtbox/gtbox_orm/gtbox_orm_config"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -29,10 +30,10 @@ func Instance() *GTORMMysql {
 	return mysqlInstance
 }
 
-func (aMysql *GTORMMysql) OPenMysql(dbUser string, dbPwd string, dbName string, dbAddress string, dbPort int, endFunc func(err error)) {
+func (aMysql *GTORMMysql) OPenMysql(dbUser string, dbPwd string, dbName string, dbAddress string, dbPort int, timeZone gtbox_orm_config.GTORMTimeZone, endFunc func(err error)) {
 	aMysql.mux.Lock()
 	defer aMysql.mux.Unlock()
-	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=UTC", dbUser, dbPwd, dbAddress, dbPort, dbName)
+	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&loc=%s", dbUser, dbPwd, dbAddress, dbPort, dbName, timeZone.String())
 	alogleve := logger.Silent
 
 	aMysql.MysqlDB, aMysql.MysqlError = gorm.Open(mysql.Open(connectionStr), &gorm.Config{
