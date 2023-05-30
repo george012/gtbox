@@ -2,7 +2,6 @@ package gtbox_files
 
 import (
 	"github.com/george012/gtbox/gtbox_string"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -21,7 +20,9 @@ func GTToolsFileWrite(filePath, content string) bool {
 }
 
 func GTToolsFileRemoveAllInDir(dirPath string) {
-	dir, err := ioutil.ReadDir(dirPath)
+	//dir, err := ioutil.ReadDir(dirPath)
+	dir, err := os.ReadDir(dirPath)
+
 	if err != nil {
 		GTCheckDirisNoneToCreate(dirPath)
 		return
@@ -34,7 +35,8 @@ func GTToolsFileRemoveAllInDir(dirPath string) {
 }
 
 func GTToolsFileRemoveAllKeepRunLog(dirPath string) {
-	dir, err := ioutil.ReadDir(dirPath)
+	//dir, err := ioutil.ReadDir(dirPath)
+	dir, err := os.ReadDir(dirPath)
 	if err != nil {
 		GTCheckDirisNoneToCreate(dirPath)
 		return

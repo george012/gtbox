@@ -5,9 +5,10 @@ import (
 	"time"
 )
 
-func GTToolsTimeStringCovertToUTCTime(tiemString string) time.Time {
+// GTToolsTimeStringCovertToUTCTime	时间字符串 转 UTC时间
+func GTToolsTimeStringCovertToUTCTime(timeString string) time.Time {
 	utcloc, _ := time.LoadLocation("UTC")
-	aTime, _ := time.ParseInLocation("2006-01-02T15:04:05Z", tiemString, utcloc)
+	aTime, _ := time.ParseInLocation("2006-01-02T15:04:05Z", timeString, utcloc)
 	bTime := time.Unix(aTime.Unix(), 0).UTC()
 	return bTime
 }
@@ -25,12 +26,14 @@ func GTToolsTimestampCovertToBeijing(timestamp float64) time.Time {
 	return beijingTIme
 }
 
+// GTToolsTimesGetBeijingTime	普通时间 转 北京时间
 func GTToolsTimesGetBeijingTime() time.Time {
 	beijingLoc, _ := time.LoadLocation("Asia/Shanghai") //上海
 	beijingTIme := time.Now().In(beijingLoc)
 	return beijingTIme
 }
 
+// GTToolsTimeUTCCovertToBeijing	UTC时间 转 北京时间
 func GTToolsTimeUTCCovertToBeijing(inTime time.Time) time.Time {
 	beijingLoc, _ := time.LoadLocation("Asia/Shanghai") //上海
 	beijingTIme := inTime.In(beijingLoc)

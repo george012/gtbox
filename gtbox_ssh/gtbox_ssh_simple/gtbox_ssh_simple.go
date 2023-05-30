@@ -14,10 +14,11 @@ func SimpleAddressOfOne() {
 	}
 
 	connectInfo := &gtbox_ssh.CLIConnectInfo{
-		Address: "192.168.1.101",
-		Port:    22,
-		User:    "root",
-		Pwd:     "root",
+		Address:   "192.168.1.101",
+		Port:      22,
+		User:      "root",
+		Pwd:       "root",
+		LoginType: gtbox_ssh.SSHLoginTypePWD,
 	}
 
 	gtbox_ssh.GTSSHClientRun(connectInfo, commands, func(result *gtbox_ssh.SSHResultInfo, err error) {

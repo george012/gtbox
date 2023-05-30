@@ -2,6 +2,7 @@ package gtbox_number
 
 import (
 	"math"
+	"math/big"
 	"strconv"
 	"strings"
 )
@@ -46,8 +47,61 @@ func GTFloat64GetLengthBefore(f float64) int {
 	return before
 }
 
-// GTFloat64GetLengthAfter 获取`float64`总位数
+// GTFloat64GetLengthAfter 获取`float64`小数点后位数
 func GTFloat64GetLengthAfter(f float64) int {
 	_, _, after := GTFloat64GetLengthSegmentLength(f)
 	return after
+}
+
+// GTFloat64Sum Float64超高精度运算--加法
+func GTFloat64Sum(a, b float64) float64 {
+	f1 := big.NewFloat(a)
+	f2 := big.NewFloat(b)
+	result := new(big.Float).Add(f1, f2)
+
+	f64, _ := result.Float64()
+
+	return f64
+}
+
+// GTFloat64Sub Float64超高精度运算--减法
+func GTFloat64Sub(a, b float64) float64 {
+	f1 := big.NewFloat(a)
+	f2 := big.NewFloat(b)
+	result := new(big.Float).Sub(f1, f2)
+
+	f64, _ := result.Float64()
+
+	return f64
+}
+
+// GTFloat64Mul Float64超高精度运算--乘法
+func GTFloat64Mul(a, b float64) float64 {
+	f1 := big.NewFloat(a)
+	f2 := big.NewFloat(b)
+	result := new(big.Float).Mul(f1, f2)
+
+	f64, _ := result.Float64()
+
+	return f64
+}
+
+// GTFloat64Div Float64超高精度运算--除法
+func GTFloat64Div(a, b float64) float64 {
+	f1 := big.NewFloat(a)
+	f2 := big.NewFloat(b)
+	result := new(big.Float).Quo(f1, f2)
+
+	f64, _ := result.Float64()
+
+	return f64
+}
+
+// GTBigFLoat2Float64 Float64超高精度运算--除法
+// bigFloat 传入的big.float 指针
+// Return [float64] 返回float64
+func GTBigFLoat2Float64(bigFloat *big.Float) float64 {
+	// 将big.Float类型转换为float64类型
+	float64Val, _ := bigFloat.Float64()
+	return float64Val
 }
