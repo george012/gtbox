@@ -5,10 +5,117 @@ import (
 	"math/big"
 )
 
+type HashRateUnitFormat int64
+
+const (
+	HashRateUnitFormatHs  HashRateUnitFormat = iota // H/s 默认值
+	HashRateUnitFormatKHs                           // KH/s
+	HashRateUnitFormatMHs                           // MH/s
+	HashRateUnitFormatGHs                           // GH/s
+	HashRateUnitFormatTHs                           // TH/s
+	HashRateUnitFormatPHs                           // PH/s
+	HashRateUnitFormatEHs                           // EH/s
+	HashRateUnitFormatZHs                           // ZH/s
+	HashRateUnitFormatYHs                           // YH/s
+)
+
+func (unitFormat HashRateUnitFormat) String() string {
+	switch unitFormat {
+	case HashRateUnitFormatYHs:
+		return "YH/s"
+	case HashRateUnitFormatZHs:
+		return "ZH/s"
+	case HashRateUnitFormatEHs:
+		return "EH/s"
+	case HashRateUnitFormatPHs:
+		return "PH/s"
+	case HashRateUnitFormatTHs:
+		return "TH/s"
+	case HashRateUnitFormatGHs:
+		return "GH/s"
+	case HashRateUnitFormatMHs:
+		return "MH/s"
+	case HashRateUnitFormatKHs:
+		return "KH/s"
+	case HashRateUnitFormatHs:
+		return "H/s"
+	default:
+		return "H/s"
+	}
+}
+
+type GTHashRate struct {
+	Value    string
+	UnitStr  string
+	UnitFlag HashRateUnitFormat
+}
+
+// GTHashRate2Format 强制转换成某一个Hash单位类型
+// baseHashRate 基础H/s为单位的 HashRate值
+// toFormat 要转换成的HashRate计量单位类型
+// fSed 保留小数点后几位
+// Return[GTHashRate] 返回值
+func GTHashRate2Format(baseHashRate *big.Float, toFormat HashRateUnitFormat, fSed int) *GTHashRate {
+	k := big.NewFloat(1000)
+	m := new(big.Float).Mul(k, k)
+	g := new(big.Float).Mul(m, k)
+	t := new(big.Float).Mul(g, k)
+	p := new(big.Float).Mul(t, k)
+	e := new(big.Float).Mul(p, k)
+	z := new(big.Float).Mul(e, k)
+	y := new(big.Float).Mul(z, k)
+
+	// 构造格式化字符串，例如 "%.2f" 或 "%.3f"，根据 fsed 的值来决定
+	format := fmt.Sprintf("%%.%df", fSed)
+
+	cmHS := baseHashRate
+	cmpUnit := HashRateUnitFormatHs
+	cmpUnitStr := HashRateUnitFormatHs.String()
+
+	switch toFormat {
+	case HashRateUnitFormatYHs:
+		cmHS = new(big.Float).Quo(cmHS, y)
+		cmpUnit = HashRateUnitFormatYHs
+		cmpUnitStr = HashRateUnitFormatYHs.String()
+	case HashRateUnitFormatZHs:
+		cmHS = new(big.Float).Quo(cmHS, z)
+		cmpUnit = HashRateUnitFormatZHs
+		cmpUnitStr = HashRateUnitFormatZHs.String()
+	case HashRateUnitFormatEHs:
+		cmHS = new(big.Float).Quo(cmHS, e)
+		cmpUnit = HashRateUnitFormatEHs
+		cmpUnitStr = HashRateUnitFormatEHs.String()
+	case HashRateUnitFormatPHs:
+		cmHS = new(big.Float).Quo(cmHS, p)
+		cmpUnit = HashRateUnitFormatPHs
+		cmpUnitStr = HashRateUnitFormatPHs.String()
+	case HashRateUnitFormatTHs:
+		cmHS = new(big.Float).Quo(cmHS, t)
+		cmpUnit = HashRateUnitFormatTHs
+		cmpUnitStr = HashRateUnitFormatTHs.String()
+	case HashRateUnitFormatGHs:
+		cmHS = new(big.Float).Quo(cmHS, g)
+		cmpUnit = HashRateUnitFormatGHs
+		cmpUnitStr = HashRateUnitFormatGHs.String()
+	case HashRateUnitFormatMHs:
+		cmHS = new(big.Float).Quo(cmHS, m)
+		cmpUnit = HashRateUnitFormatMHs
+		cmpUnitStr = HashRateUnitFormatMHs.String()
+	case HashRateUnitFormatKHs:
+		cmHS = new(big.Float).Quo(cmHS, k)
+		cmpUnit = HashRateUnitFormatKHs
+		cmpUnitStr = HashRateUnitFormatKHs.String()
+	}
+	return &GTHashRate{
+		Value:    fmt.Sprintf(format, cmHS),
+		UnitStr:  cmpUnitStr,
+		UnitFlag: cmpUnit,
+	}
+}
+
 // GTHashRateFormat 哈希显示单位计算公式 以H/s 为单位传入，根据数值不同换算成进制单位MH/s、GH/s等, 默认保留3位小数点
 // hs Hash算力值
 func GTHashRateFormat(hs *big.Float) string {
-
 	return GTHashRateFormatWithSed(hs, 3)
 }
 
