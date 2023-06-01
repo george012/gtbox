@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+// GTToolsTimeGetCurrentTimeWithUTC	时间字符串 转 UTC时间
+func GTToolsTimeGetCurrentTimeWithUTC() time.Time {
+	return time.Now().UTC()
+}
+
 // GTToolsTimeStringCovertToUTCTime	时间字符串 转 UTC时间
 func GTToolsTimeStringCovertToUTCTime(timeString string) time.Time {
 	utcloc, _ := time.LoadLocation("UTC")
