@@ -1,6 +1,7 @@
 package gtbox_log
 
 import (
+	"fmt"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"runtime"
@@ -8,6 +9,37 @@ import (
 	"sync"
 	"time"
 )
+
+// GTLogStyle 日志样式
+type GTLogStyle int
+
+const (
+	GTLogStyleDebug   GTLogStyle = iota // Debug
+	GTLogStyleError                     // Error
+	GTLogStyleWarning                   // Warning
+	GTLogStyleInfo                      // Info
+	GTLogStyleTrace                     // Trace
+	GTLogStyleFatal                     // Fatal
+)
+
+func (aStyle GTLogStyle) String() string {
+	switch aStyle {
+	case GTLogStyleFatal:
+		return "fatal"
+	case GTLogStyleTrace:
+		return "trace"
+	case GTLogStyleInfo:
+		return "info"
+	case GTLogStyleWarning:
+		return "warning"
+	case GTLogStyleError:
+		return "error"
+	case GTLogStyleDebug:
+		return "debug"
+	default:
+		return "debug"
+	}
+}
 
 // GTLogSaveType 日志分片类型
 type GTLogSaveType int
@@ -167,4 +199,27 @@ func LogFatalf(format string, args ...interface{}) {
 // LogWarnf format格式化log--Warning信息
 func LogWarnf(format string, args ...interface{}) {
 	Instance().Warnf(format, args...)
+}
+
+// LogF 快捷日志Function，含模块字段封装
+// Params [module] 模块名称：自定义字符串
+// Params [style] log类型  fatal、trace、info、warning、error、debug
+// Params [format] 模块名称：自定义字符串
+// Params [args...] 模块名称：自定义字符串
+func LogF(module string, style GTLogStyle, format string, args ...interface{}) {
+	endForMat := fmt.Sprintf("[Module:---%s---] %s", module, format)
+	switch style {
+	case GTLogStyleFatal:
+		Instance().Fatalf(endForMat, args...)
+	case GTLogStyleTrace:
+		Instance().Tracef(endForMat, args...)
+	case GTLogStyleInfo:
+		Instance().Ininfof(endForMat, args...)
+	case GTLogStyleWarning:
+		Instance().Warnf(endForMat, args...)
+	case GTLogStyleError:
+		Instance().Errorf(endForMat, args...)
+	case GTLogStyleDebug:
+		Instance().Debugf(endForMat, args...)
+	}
 }
