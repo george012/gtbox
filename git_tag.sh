@@ -1,6 +1,10 @@
 #!/bin/bash
+set -e
+
 ProductName=gtbox
-aVersion=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
+VersionFile=./version.go
+
+aVersion=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
 CurrentVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
 echo "============================ ${ProductName} ============================"
 echo "  1、发布 [-${ProductName}-]"
@@ -14,15 +18,15 @@ else
     versionStr=v${inputString}
 fi
 
-fileVersionLineNo=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $1}'`
+fileVersionLineNo=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $1}'`
 
-oldfileVersionStr=`cat ./version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
+oldfileVersionStr=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
 
 newVersionStr='const VERSION = ''"'$versionStr'"'
-sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" ./version.go
+sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" $VersionFile
 
-REV_LIST=`git rev-list --tags --max-count=1`
-APP_VERSION=`git describe --tags $REV_LIST`
-APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-1))
+ovs=${oldfileVersionStr#VERSION=\"}
+APP_OLD_VERSION=${ovs%\"}
+PRE_DEL_VERSION=${APP_OLD_VERSION%.*}.$((${APP_OLD_VERSION##*.}-1))
 
-git add . && git commit -m "Update ${versionStr}"  && git tag $versionStr && git push && git push --tags && git tag -d $APP_OLD_VERSION
+git add . && git commit -m "Update ${versionStr}"  && git tag $versionStr && git push && git push --tags && git tag -f latest $versionStr && git push -f origin latest && git tag -d $PRE_DEL_VERSION

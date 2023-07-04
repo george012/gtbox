@@ -52,8 +52,8 @@ install() {
             then
                 srcPWD=`pwd`
         #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
-                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
-                ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
+                sudo ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
+                sudo ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
             elif [ ${OSTYPE} == "Linux" ] # Linux
             then
                 ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
