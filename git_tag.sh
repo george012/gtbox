@@ -25,7 +25,7 @@ oldfileVersionStr=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{p
 newVersionStr='const VERSION = ''"'$versionStr'"'
 sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" $VersionFile
 
-ovs=${oldfileVersionStr#VERSION=\"}
+ovs=${oldfileVersionStr#const VERSION = \"}
 APP_OLD_VERSION=${ovs%\"}
 PRE_DEL_VERSION=${APP_OLD_VERSION%.*}.$((${APP_OLD_VERSION##*.}-1))
 
