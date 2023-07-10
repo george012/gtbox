@@ -60,9 +60,9 @@ if [[ -z "$PAT" ]]; then
     && git commit -m "Update ${versionStr}"  \
     && git tag $versionStr \
     && git push \
-    && git push --tags \
+    && git push origin :refs/tags/latest \
     && git tag -f latest $versionStr \
-    && git push -f origin latest \
+    && git push --tags \
     && git tag -d $PRE_DEL_VERSION
 else
     git add . \
