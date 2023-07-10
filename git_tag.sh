@@ -69,8 +69,7 @@ else
     && git commit -m "Update ${versionStr}"  \
     && git tag $versionStr \
     && git push https://$PAT@github.com/${REPO_PFEX}.git \
-    && git push --tags https://$PAT@github.com/${REPO_PFEX}.git \
     && git tag -f latest $versionStr \
-    && git push -f https://$PAT@github.com/${REPO_PFEX}.git origin latest \
+    && git push --tags https://$PAT@github.com/${REPO_PFEX}.git \
     && git tag -d $PRE_DEL_VERSION
 fi
