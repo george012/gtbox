@@ -24,7 +24,6 @@ if [ -z "$2" ]; then
         versionStr=v${inputString}
     fi
 elif [ "$2" == "auto" ]; then
-    
     base=$(echo $CurrentVersionString | cut -d'.' -f1)      # Get the base version (v0)
     major=$(echo $CurrentVersionString | cut -d'.' -f2)      # Get the major version (0)
     minor=$(echo $CurrentVersionString | cut -d'.' -f3)      # Get the minor version (1)
