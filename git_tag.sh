@@ -4,7 +4,7 @@ set -e
 PAT=$1
 
 ProductName=gtbox
-REPO_PFEX=george/gtbox
+REPO_PFEX=george012/gtbox
 VersionFile=./version.go
 
 aVersion=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
