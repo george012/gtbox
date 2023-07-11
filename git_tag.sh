@@ -47,7 +47,7 @@ fileVersionLineNo=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{p
 oldfileVersionStr=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
 
 newVersionStr='const VERSION = ''"'$versionStr'"'
-sed -i "" -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" $VersionFile
+sed -i.bak -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" $VersionFile
 
 ovs=${oldfileVersionStr#const VERSION = \"}
 APP_OLD_VERSION=${ovs%\"}
