@@ -1,7 +1,6 @@
 #!/bin/bash
-set -e
 
-PAT=$1
+set -e
 
 ProductName=gtbox
 REPO_PFEX=george012/gtbox
@@ -12,7 +11,7 @@ CurrentVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'`
 
 versionStr=""
 
-if [ -z "$2" ]; then
+if [ -z "$1" ]; then
     echo "============================ ${ProductName} ============================"
     echo "  1、发布 [-${ProductName}-]"
     echo "  当前版本[-${CurrentVersionString}-]"
@@ -48,27 +47,17 @@ oldfileVersionStr=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{p
 
 newVersionStr='const VERSION = ''"'$versionStr'"'
 sed -i.bak -e "${fileVersionLineNo}s/${oldfileVersionStr}/${newVersionStr}/g" $VersionFile
+rm -rf $VersionFile.bak
 
 ovs=${oldfileVersionStr#const VERSION = \"}
 APP_OLD_VERSION=${ovs%\"}
 PRE_DEL_VERSION=${APP_OLD_VERSION%.*}.$((${APP_OLD_VERSION##*.}-1))
 
-if [[ -z "$PAT" ]]; then
-    git add . \
-    && git commit -m "Update ${versionStr}"  \
-    && git tag $versionStr \
-    && git push \
-    && git push origin :refs/tags/latest \
-    && git tag -f latest $versionStr \
-    && git push --tags \
-    && git tag -d $PRE_DEL_VERSION
-else
-    git add . \
-    && git commit -m "Update ${versionStr}"  \
-    && git tag $versionStr \
-    && git push https://$PAT@github.com/${REPO_PFEX}.git \
-    && git push https://$PAT@github.com/${REPO_PFEX}.git :refs/tags/latest \
-    && git tag -f latest $versionStr \
-    && git push --tags https://$PAT@github.com/${REPO_PFEX}.git \
-    && git tag -d $PRE_DEL_VERSION
-fi
+git add . \
+&& git commit -m "Update ${versionStr}"  \
+&& git tag $versionStr \
+&& git push \
+&& git push --tags \
+&& git tag -f latest $versionStr \
+&& git push -f origin latest \
+&& git tag -d $PRE_DEL_VERSION
