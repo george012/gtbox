@@ -42,8 +42,6 @@ elif [ "$2" == "auto" ]; then
     versionStr="${base}.${major}.${minor}"
 fi
 
-
-
 fileVersionLineNo=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $1}'`
 
 oldfileVersionStr=`cat $VersionFile | grep -n "const VERSION =" | awk -F ":" '{print $2}'`
