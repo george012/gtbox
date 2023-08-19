@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"github.com/george012/gtbox/gtbox_gui/gtbox_gui_fyne"
-	"github.com/s-c-f-d/tianxia_box/gtbox_gui_fyne/gt_button"
+	"github.com/george012/gtbox/gtbox_gui/gtbox_gui_fyne/gt_button"
 	"image/color"
 )
 
