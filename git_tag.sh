@@ -28,6 +28,7 @@ GetOSType() {
         OSTYPE="Unknown"
     fi
 }
+GetOSType
 
 function to_run() {
     if [ -z "$1" ]; then
@@ -102,7 +103,7 @@ function git_handle_ready() {
 
     if [[ $OSTYPE == "Darwin" ]]; then
         echo "rm darwin cache"
-        rm -rf $VersionFile}"-e"
+        rm -rf $VersionFile"-e"
     fi
 }
 
