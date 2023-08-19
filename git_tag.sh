@@ -99,8 +99,10 @@ function git_handle_ready() {
     echo "Next Version With "${NEXT_VERSION}
 
     sed -i -e "s/\(${Product_version_key}[[:space:]]*=[[:space:]]*\"\)${CURRENT_VERSION}\"/\1${NEXT_VERSION}\"/" $VersionFile
-    if [[ "$OSTYPE" == "Darwin" ]]; then
-        rm -rf ${VersionFile}"-e"
+
+    if [[ $OSTYPE == "Darwin" ]]; then
+        echo "rm darwin cache"
+        rm -rf $VersionFile}"-e"
     fi
 }
 
