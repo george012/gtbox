@@ -11,6 +11,24 @@ CURRENT_VERSION=$(grep ${Product_version_key} $VersionFile | awk -F '"' '{print 
 
 NEXT_VERSION=""
 
+OSTYPE="Unknown"
+GetOSType() {
+    uNames=`uname -s`
+    osName=${uNames: 0: 4}
+    if [ "$osName" == "Darw" ] # Darwin
+    then
+        OSTYPE="Darwin"
+    elif [ "$osName" == "Linu" ] # Linux
+    then
+        OSTYPE="Linux"
+    elif [ "$osName" == "MING" ] # MINGW, windows, git-bash
+    then
+        OSTYPE="Windows"
+    else
+        OSTYPE="Unknown"
+    fi
+}
+
 function to_run() {
     if [ -z "$1" ]; then
         baseStr=$(echo ${CURRENT_VERSION} | cut -d'.' -f1)     # Get the base version (v0)
@@ -81,6 +99,9 @@ function git_handle_ready() {
     echo "Next Version With "${NEXT_VERSION}
 
     sed -i -e "s/\(${Product_version_key}[[:space:]]*=[[:space:]]*\"\)${CURRENT_VERSION}\"/\1${NEXT_VERSION}\"/" $VersionFile
+    if [[ "$OSTYPE" == "Darwin" ]]; then
+        rm -rf ${VersionFile}"-e"
+    fi
 }
 
 function git_handle_push() {
