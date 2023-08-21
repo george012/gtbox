@@ -27,10 +27,9 @@ func NewGTButton(text string, size fyne.Size, backgroundColor, textColor color.C
 	}
 
 	button.Id = uuid.New().String()
+	button.ExtendBaseWidget(button)
 
 	button.Resize(size)
-
-	button.ExtendBaseWidget(button)
 	return button
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// GTGetDescription 获取描述
 func GTGetDescription() string {
 	des_map := map[string]map[string]string{
 		"GTButton": {

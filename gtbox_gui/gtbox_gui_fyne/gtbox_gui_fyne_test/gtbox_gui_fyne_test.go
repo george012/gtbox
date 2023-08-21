@@ -1,4 +1,4 @@
-package gtbox_gui_fyne_simple
+package gtbox_gui_fyne_test
 
 import (
 	"fmt"
@@ -8,11 +8,12 @@ import (
 	"github.com/george012/gtbox/gtbox_gui/gtbox_gui_fyne"
 	"github.com/george012/gtbox/gtbox_gui/gtbox_gui_fyne/gt_button"
 	"image/color"
+	"testing"
 )
 
-func SimpleWithGTButton() {
+func TestGTBoxGuiFyne(t *testing.T) {
 	myApp := app.New()
-	myWindow := myApp.NewWindow("GTButton Example")
+	myWindow := myApp.NewWindow("GTBox GUI Example")
 
 	gtButton := gt_button.NewGTButton("Click Me",
 		fyne.NewSize(100, 200),
@@ -20,7 +21,7 @@ func SimpleWithGTButton() {
 		color.White,
 		func(btn *gt_button.GTButton) {
 			fmt.Printf("click Bution With [%s]", btn.Id)
-			fmt.Print("%s", gtbox_gui_fyne.GTGetDescription())
+			fmt.Printf("%s", gtbox_gui_fyne.GTGetDescription())
 		},
 	)
 
