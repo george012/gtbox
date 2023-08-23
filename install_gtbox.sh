@@ -50,15 +50,15 @@ install() {
         do
             if [ ${OSTYPE} == "Darwin" ]; then # Darwin
                 srcPWD=`pwd`
-        #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
-                sudo ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
+        #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@${aVersionNo} ${produckName} && cd ${srcPWD}
+                sudo ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
                 sudo ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
             elif [ ${OSTYPE} == "Linux" ] # Linux
             then
-                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
+                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${alibName}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
             elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
             then
-                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/${alibName}.dll /c/Windows/System32/${alibName}.dll
+                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionNo}/libs/${alibName}/${alibName}.dll /c/Windows/System32/${alibName}.dll
             else
                 echo ${OSTYPE}
             fi
