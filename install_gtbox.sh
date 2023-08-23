@@ -3,6 +3,8 @@
 set -e
 
 ProductName=gtbox
+REPO_PFEX=george012/${ProductName}
+
 OSTYPE="Unknown"
 GetOSType(){
     uNames=`uname -s`
@@ -27,6 +29,44 @@ removeCache() {
     rm -rf ./install_${ProductName}.sh
 }
 
+parse_json(){
+    echo "${1//\"/}" | tr -d '\n' | tr -d '\r' | sed "s/.*$2:\([^,}]*\).*/\1/"
+}
+
+get_repo_latest_version(){
+    local REMOTE_REPO_VERSION=""
+    local LATEST_RELEASE_INFO=$(curl --silent https://api.github.com/repos/${REPO_PFEX}/releases/latest)
+    if ! echo "$LATEST_RELEASE_INFO" | grep -q "Not Found"; then
+        REMOTE_REPO_VERSION=$(parse_json "$LATEST_RELEASE_INFO" "tag_name")
+    else
+      return 1
+    fi
+    echo $REMOTE_REPO_VERSION | tr -d '\r\n'
+    return 0
+}
+
+create_symlink() {
+    local alibName=$1
+    local aVersionStr=$2
+    local libPath=${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionStr}/libs/${alibName}
+
+    case ${OSTYPE} in
+        "Darwin")
+            sudo ln -s ${libPath}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
+            sudo ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
+            ;;
+        "Linux")
+            ln -s ${libPath}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
+            ;;
+        "Windows")
+            ln -s ${libPath}/${alibName}.dll /c/Windows/System32/${alibName}.dll
+            ;;
+        *)
+            echo ${OSTYPE}
+            ;;
+    esac
+}
+
 install() {
     echo ${OSTYPE}
 
@@ -39,29 +79,14 @@ install() {
 
     find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec rm -rf {} \;
 
-    go get -u github.com/george012/${ProductName}@latest
+    last_repo_version=$(get_repo_latest_version)
 
-    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/config/config.go -O ${ProductName}_config.go \
+    go get -u github.com/george012/${ProductName}@${last_repo_version} \
     && {
-
-        aVersionStr=$(grep ProjectVersion ${ProductName}_config.go | awk -F '"' '{print $2}' | sed 's/\"//g') \
-        && CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@${aVersionStr}/libs |awk '/^d/ {print $NF}') \
+        CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@${last_repo_version}/libs |awk '/^d/ {print $NF}') \
         && for alibName in ${CustomLibs}
         do
-            if [ ${OSTYPE} == "Darwin" ]; then # Darwin
-                srcPWD=`pwd`
-        #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@${aVersionStr} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@${aVersionStr} ${produckName} && cd ${srcPWD}
-                sudo ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionStr}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
-                sudo ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
-            elif [ ${OSTYPE} == "Linux" ] # Linux
-            then
-                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionStr}/libs/${alibName}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
-            elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
-            then
-                ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionStr}/libs/${alibName}/${alibName}.dll /c/Windows/System32/${alibName}.dll
-            else
-                echo ${OSTYPE}
-            fi
+            create_symlink ${alibName} ${last_repo_version}
         done
     }
 
