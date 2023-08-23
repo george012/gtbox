@@ -71,8 +71,13 @@ install() {
 uninstall() {
     complate_gopath_dir=${GOPATH}
 
-    CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs |awk '/^d/ {print $NF}') \
-    && for libName in ${CustomLibs}
+    # 找到所有版本的库并删除
+    find ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@* -type d -exec rm -rf {} \;
+
+    # 删除所有自定义库
+    CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}/libs |awk '/^d/ {print $NF}')
+
+    for libName in ${CustomLibs}
     do
         if [ ${OSTYPE} == "Darwin" ] # Darwin
         then
@@ -90,10 +95,9 @@ uninstall() {
             echo ${OSTYPE}
         fi
     done
-    removeCache
-    find ${complate_gopath_dir}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
-}
 
+    removeCache
+}
 
 echo "============================ ${ProductName} ============================"
 echo "  1、安装 ${ProductName}"
