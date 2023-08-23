@@ -28,22 +28,18 @@ removeCache() {
 }
 
 install() {
-    complate_gopath_dir=${GOPATH}
-
-
     echo ${OSTYPE}
+
+    complate_gopath_dir=${GOPATH}
     if [ ${OSTYPE} == "Windows" ]
     then
         ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
         complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
-        find $complate_gopath_dir/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
-    else
-        find ${complate_gopath_dir}/pkg/mod/github.com/george012  -name "${ProductName}@*" -exec rm -rf {} \;
     fi
 
+    find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec rm -rf {} \;
+
     go get -u github.com/george012/${ProductName}@latest
-
-
 
     wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/config.go -O ${ProductName}_config.go \
     && {
