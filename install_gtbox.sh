@@ -23,7 +23,7 @@ GetOSType(){
 GetOSType
 
 removeCache() {
-    rm -rf ./${ProductName}_version.go
+    rm -rf ./${ProductName}_config.go
     rm -rf ./install_${ProductName}.sh
 }
 
@@ -41,7 +41,7 @@ install() {
 
     go get -u github.com/george012/${ProductName}@latest
 
-    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/config.go -O ${ProductName}_config.go \
+    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/config/config.go -O ${ProductName}_config.go \
     && {
 
         aVersionNo=$(grep ProjectVersion ${ProductName}_config.go | awk -F '"' '{print $2}' | sed 's/\"//g') \
