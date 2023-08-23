@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 ProductName=gtbox
 OSTYPE="Unknown"
 GetOSType(){
@@ -17,6 +20,7 @@ GetOSType(){
         OSTYPE="Unknown"
     fi
 }
+GetOSType
 
 removeCache() {
     rm -rf ./${ProductName}_version.go
@@ -26,7 +30,7 @@ removeCache() {
 install() {
     complate_gopath_dir=${GOPATH}
 
-    GetOSType
+
     echo ${OSTYPE}
     if [ ${OSTYPE} == "Windows" ]
     then
@@ -39,17 +43,16 @@ install() {
 
     go get -u github.com/george012/${ProductName}@latest
 
-    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/version.go -O ${ProductName}_version.go \
+
+
+    wget --no-check-certificate https://raw.githubusercontent.com/george012/${ProductName}/master/config.go -O ${ProductName}_config.go \
     && {
 
-        aVersion=`cat ./${ProductName}_version.go | grep -n "const VERSION =" | awk -F ":" '{print $2}'` \
-        && aVersionString=`echo "${aVersion/'const VERSION = '/}" | sed 's/\"//g'` \
-        && aVersionNo=`echo "${aVersionString}" | awk -F "v" '{print $2}'` \
+        aVersionNo=$(grep ProjectVersion ${ProductName}_config.go | awk -F '"' '{print $2}' | sed 's/\"//g') \
         && CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs |awk '/^d/ {print $NF}') \
         && for alibName in ${CustomLibs}
         do
-            if [ ${OSTYPE} == "Darwin" ] # Darwin
-            then
+            if [ ${OSTYPE} == "Darwin" ]; then # Darwin
                 srcPWD=`pwd`
         #        cd ${GOPATH}/pkg/mod/github.com/george012/gtbox@v${aVersionNo} && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/install_name_tool -add_rpath ../gtbox@v${aVersionNo} ${produckName} && cd ${srcPWD}
                 sudo ln -s ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@v${aVersionNo}/libs/${alibName}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
@@ -71,7 +74,7 @@ install() {
 
 uninstall() {
     complate_gopath_dir=${GOPATH}
-    GetOSType
+
     CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/gtbox@v$aVersionNo/libs |awk '/^d/ {print $NF}') \
     && for libName in ${CustomLibs}
     do
