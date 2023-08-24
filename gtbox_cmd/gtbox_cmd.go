@@ -1,3 +1,6 @@
+/*
+Package gtbox_cmd 本地命令行工具
+*/
 package gtbox_cmd
 
 import (

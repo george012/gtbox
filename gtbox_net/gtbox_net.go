@@ -1,3 +1,6 @@
+/*
+Package gtbox_net 网络工具
+*/
 package gtbox_net
 
 import (

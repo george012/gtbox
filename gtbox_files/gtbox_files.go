@@ -1,3 +1,6 @@
+/*
+Package gtbox_files 文件处理工具
+*/
 package gtbox_files
 
 import (

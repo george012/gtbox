@@ -1,3 +1,6 @@
+/*
+Package gtbox_log Log工具
+*/
 package gtbox_log
 
 import (

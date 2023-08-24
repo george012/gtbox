@@ -1,3 +1,6 @@
+/*
+Package gtbox_gui GUI工具
+*/
 package gtbox_gui
 
 import (

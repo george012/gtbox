@@ -1,3 +1,6 @@
+/*
+Package gtbox_excel Excel处理工具
+*/
 package gtbox_excel
 
 import (

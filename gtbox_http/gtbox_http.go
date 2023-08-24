@@ -1,3 +1,6 @@
+/*
+Package gtbox_http http客户端工具
+*/
 package gtbox_http
 
 import (
