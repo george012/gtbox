@@ -114,12 +114,12 @@ function git_handle_push() {
     echo "Pre Del Version With v"${pre_del_version_no}
 
     git add . \
-    && git commit -m "Update v${netx_version_no}"  \
+    && git commit -m "Update v${netx_version_no}" \
     && git tag v$netx_version_no \
     && git push \
     && git push --tags \
-    && git tag -f latest v$netx_version_no \
     && git push --delete origin latest \
+    && git tag -f latest v$netx_version_no \
     && git push -f origin latest \
     && git tag -d v$pre_del_version_no
 }
