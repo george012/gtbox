@@ -119,6 +119,7 @@ function git_handle_push() {
     && git push \
     && git push --tags \
     && git tag -f latest v$netx_version_no \
+    && git push --delete origin latest \
     && git push -f origin latest \
     && git tag -d v$pre_del_version_no
 }
