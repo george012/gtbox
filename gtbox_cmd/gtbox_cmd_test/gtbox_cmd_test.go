@@ -8,13 +8,16 @@ import (
 
 func TestGTCmd_ExecuteCommands(t *testing.T) {
 	cmdMap := map[string]string{
-		"ifconfig": "ifconfig",
-		"iostat":   "iostat",
+		"ifconfig_a": "ifconfig",
+		"iostat_b":   "iostat",
 	}
 	cmdRes := gtbox_cmd.RunWith(cmdMap)
 
 	if cmdRes != nil {
-		value, err := cmdRes.Load("ifconfig")
-		fmt.Printf("%v%v", value, err)
+		for cmd_key := range cmdMap {
+			cmd_res, _ := cmdRes.Load(cmd_key)
+			fmt.Printf("[%s]---[%v]\n\n", cmd_key, cmd_res)
+		}
+
 	}
 }
