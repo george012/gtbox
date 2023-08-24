@@ -77,7 +77,7 @@ install() {
         complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
     fi
 
-    find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec rm -rf {} \;
+    find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec sudo rm -rf {} \;
 
     last_repo_version=$(get_repo_latest_version)
 
