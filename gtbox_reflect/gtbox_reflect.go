@@ -51,3 +51,20 @@ func GetFieldValueAtIndex(customModel interface{}, index int) (interface{}, erro
 	}
 	return nil, fmt.Errorf("Provided interface is not a struct or pointer to struct")
 }
+
+// GetFieldIndex 获取给定字段名在结构体中的索引
+func GetFieldIndex(customModel interface{}, fieldName string) (int, error) {
+	typ := reflect.TypeOf(customModel)
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	if typ.Kind() == reflect.Struct {
+		for i := 0; i < typ.NumField(); i++ {
+			if typ.Field(i).Name == fieldName {
+				return i, nil
+			}
+		}
+		return -1, fmt.Errorf("Field not found")
+	}
+	return -1, fmt.Errorf("Provided interface is not a struct or pointer to struct")
+}
