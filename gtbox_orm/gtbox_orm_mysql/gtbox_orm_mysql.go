@@ -62,7 +62,7 @@ func (aMysql *GTORMMysql) InsertData(dataModel interface{}) error {
 		return err
 	}
 	if result.RowsAffected == 0 {
-		if cuerr := aMysql.MysqlDB.Create(dataModel).Error; err != nil {
+		if cuerr := aMysql.MysqlDB.Create(dataModel).Error; cuerr != nil {
 			return cuerr
 		}
 	}

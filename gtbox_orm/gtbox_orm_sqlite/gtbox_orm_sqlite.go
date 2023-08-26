@@ -25,7 +25,7 @@ func Instance() *GTORMSqlite {
 	return sqliteInstance
 }
 
-func (gtSqlite *GTORMSqlite) OPenSqlite(sqlitePath string) {
+func (gtSqlite *GTORMSqlite) OpenSqlite(sqlitePath string) {
 	gtSqlite.mux.Lock()
 	defer gtSqlite.mux.Unlock()
 	// 参考 https://github.com/go-sql-driver/mysql#dsn-data-source-name 获取详情
@@ -47,9 +47,19 @@ func (gtSqlite *GTORMSqlite) InsertData(dataModel interface{}) error {
 		return err
 	}
 	if result.RowsAffected == 0 {
-		if cuerr := gtSqlite.SqliteDB.Create(dataModel).Error; err != nil {
+		if cuerr := gtSqlite.SqliteDB.Create(dataModel).Error; cuerr != nil {
 			return cuerr
 		}
+	}
+	return nil
+}
+
+func (gtSqlite *GTORMSqlite) QueryData(dataModel interface{}) error {
+	gtSqlite.mux.RLock()
+	defer gtSqlite.mux.RUnlock()
+
+	if err := gtSqlite.SqliteDB.Where(dataModel).Find(dataModel).Error; err != nil {
+		return err
 	}
 	return nil
 }
