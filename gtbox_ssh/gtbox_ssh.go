@@ -1,3 +1,6 @@
+/*
+Package gtbox_ssh SSH工具库
+*/
 package gtbox_ssh
 
 import (
