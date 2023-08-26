@@ -54,11 +54,11 @@ func (gtSqlite *GTORMSqlite) InsertData(dataModel interface{}) error {
 	return nil
 }
 
-func (gtSqlite *GTORMSqlite) QueryData(dataModel interface{}) error {
+func (gtSqlite *GTORMSqlite) QueryData(dataModel interface{}, conditions ...interface{}) error {
 	gtSqlite.mux.RLock()
 	defer gtSqlite.mux.RUnlock()
 
-	if err := gtSqlite.SqliteDB.Where(dataModel).Find(dataModel).Error; err != nil {
+	if err := gtSqlite.SqliteDB.Where(dataModel, conditions...).Find(dataModel).Error; err != nil {
 		return err
 	}
 	return nil
