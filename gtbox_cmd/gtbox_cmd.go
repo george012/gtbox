@@ -6,6 +6,7 @@ package gtbox_cmd
 import (
 	"bytes"
 	"fmt"
+	"github.com/george012/gtbox/gtbox_encoding"
 	"os/exec"
 	"runtime"
 	"sync"
@@ -52,6 +53,9 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	}
 
 	result := out.String()
+	if runtime.GOOS == "windows" {
+		result, _ = gtbox_encoding.ConvertToUTF8UsedLocalENV(result)
+	}
 
 	if gcmd.results == nil {
 		gcmd.results = &sync.Map{}
