@@ -186,36 +186,104 @@ func LogInfof(format string, args ...interface{}) {
 
 // LogErrorf format格式化log--error信息
 func LogErrorf(format string, args ...interface{}) {
-	Instance().Errorf(format, args...)
+	pc, _, _, _ := runtime.Caller(1)
+	fullName := runtime.FuncForPC(pc).Name()
+
+	lastDot := strings.LastIndex(fullName, ".")
+	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+		return
+	}
+	callerClass := fullName[:lastDot]
+	method := fullName[lastDot+1:]
+
+	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	Instance().Errorf(endForMat, args...)
 }
 
 // LogDebugf format格式化log--debug信息
 func LogDebugf(format string, args ...interface{}) {
-	Instance().Debugf(format, args...)
+	pc, _, _, _ := runtime.Caller(1)
+	fullName := runtime.FuncForPC(pc).Name()
+
+	lastDot := strings.LastIndex(fullName, ".")
+	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+		return
+	}
+	callerClass := fullName[:lastDot]
+	method := fullName[lastDot+1:]
+
+	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	Instance().Debugf(endForMat, args...)
 }
 
 // LogTracef format格式化log--Trace信息
 func LogTracef(format string, args ...interface{}) {
-	Instance().Tracef(format, args...)
+	pc, _, _, _ := runtime.Caller(1)
+	fullName := runtime.FuncForPC(pc).Name()
+
+	lastDot := strings.LastIndex(fullName, ".")
+	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+		return
+	}
+	callerClass := fullName[:lastDot]
+	method := fullName[lastDot+1:]
+
+	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	Instance().Tracef(endForMat, args...)
 }
 
 // LogFatalf format格式化log--Fatal信息
 func LogFatalf(format string, args ...interface{}) {
-	Instance().Fatalf(format, args...)
+	pc, _, _, _ := runtime.Caller(1)
+	fullName := runtime.FuncForPC(pc).Name()
+
+	lastDot := strings.LastIndex(fullName, ".")
+	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+		return
+	}
+	callerClass := fullName[:lastDot]
+	method := fullName[lastDot+1:]
+
+	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	Instance().Fatalf(endForMat, args...)
 }
 
 // LogWarnf format格式化log--Warning信息
 func LogWarnf(format string, args ...interface{}) {
-	Instance().Warnf(format, args...)
+	pc, _, _, _ := runtime.Caller(1)
+	fullName := runtime.FuncForPC(pc).Name()
+
+	lastDot := strings.LastIndex(fullName, ".")
+	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+		return
+	}
+	callerClass := fullName[:lastDot]
+	method := fullName[lastDot+1:]
+
+	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	Instance().Warnf(endForMat, args...)
 }
 
 // LogF 快捷日志Function，含模块字段封装
-// Params [module] 模块名称：自定义字符串
 // Params [style] log类型  fatal、trace、info、warning、error、debug
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
-func LogF(module string, style GTLogStyle, format string, args ...interface{}) {
-	endForMat := fmt.Sprintf("[Module:---%s---] %s", module, format)
+func LogF(style GTLogStyle, format string, args ...interface{}) {
+	endForMat := format
+	if style != GTLogStyleInfo {
+		pc, _, _, _ := runtime.Caller(1)
+		fullName := runtime.FuncForPC(pc).Name()
+
+		lastDot := strings.LastIndex(fullName, ".")
+		if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+			return
+		}
+		callerClass := fullName[:lastDot]
+		method := fullName[lastDot+1:]
+
+		endForMat = fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+	}
+
 	switch style {
 	case GTLogStyleFatal:
 		Instance().Fatalf(endForMat, args...)
