@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -84,13 +85,10 @@ func GTGetLogsDir() string {
 }
 
 func (alog *GTLog) Setup() {
+
 	//	设置Log
-	logrus.SetLevel(LogLevel)
 	if LogDebugToCut == true {
-		logrus.SetFormatter(&logrus.TextFormatter{
-			ForceColors:   true,
-			FullTimestamp: true,
-		})
+
 		if runtime.GOOS == "linux" {
 			LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
 		} else {
@@ -131,6 +129,13 @@ func SetupLogTools(productName string, debugToCut bool, settingLogLeve logrus.Le
 func Instance() *GTLog {
 	GTLogOnce.Do(func() {
 		ALog = &GTLog{}
+		logrus.SetLevel(LogLevel)
+		logrus.SetFormatter(&logrus.TextFormatter{
+			ForceColors:   true,
+			FullTimestamp: true,
+		})
+		// 设置默认日志输出为控制台
+		logrus.SetOutput(os.Stdout)
 	})
 	return ALog
 }
