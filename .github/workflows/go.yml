@@ -18,7 +18,7 @@ jobs:
       UPLOAD_URL: ${{ steps.stepCreateRelease.outputs.upload_url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get latest tag
         run: |
@@ -50,7 +50,7 @@ jobs:
 
     steps:
       - name: CheckOut
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set APP_VERSION env
         run: echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
@@ -85,7 +85,7 @@ jobs:
           && sudo apt install gh -y
 
       - name: CheckOut
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set APP_VERSION env
         run: |
