@@ -11,7 +11,8 @@ package gtbox_encryption
 #include <string.h> // 添加这一行
 extern int GT_encryptionStr(const char *inputStr,char *outputStr,const char *keyString);
 extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *keyString);
-
+extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString)
+extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString)
 */
 import "C"
 
@@ -21,8 +22,8 @@ import (
 	"unsafe"
 )
 
-// GTMD5Encoding MD5加密
-func GTMD5Encoding(str string) string {
+// GTMD5EncryptionGo MD5加密
+func GTMD5EncryptionGo(str string) string {
 	h := md5.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
@@ -120,7 +121,6 @@ func GTEnc(srcString string, keyString string) (resultStr string) {
 
 	var output *C.char
 	length := int(C.gt_enc(srcCasting, &output, cKeyString))
-	defer C.free(unsafe.Pointer(output))
 
 	if length <= 0 {
 		return "" // 或者处理错误
@@ -141,7 +141,6 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 
 	var output *C.char
 	length := int(C.gt_dec(srcCasting, &output, cKeyString))
-	defer C.free(unsafe.Pointer(output))
 
 	if length <= 0 {
 		return "" // 或者处理错误
