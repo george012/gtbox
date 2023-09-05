@@ -48,15 +48,20 @@ get_repo_latest_version(){
 create_symlink() {
     local alibName=$1
     local aVersionStr=$2
+    local prefix="lib"
     local libPath=${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${aVersionStr}/libs/${alibName}
 
     case ${OSTYPE} in
-        "Darwin")
-            sudo ln -s ${libPath}/lib${alibName}.dylib /usr/local/lib/lib${alibName}.dylib
-            sudo ln -s /usr/local/lib/lib${alibName}.dylib /usr/local/lib/lib${alibName}_arm64.dylib
-            ;;
-        "Linux")
-            ln -s ${libPath}/lib${alibName}.so /lib64/lib${alibName}.so && ldconfig
+        "Darwin"|"Linux")
+            # 如果 alibName 不是以 "lib" 开头，则添加 "lib" 前缀
+            [[ ${alibName} == lib* ]] || alibName="${prefix}${alibName}"
+
+            if [ "${OSTYPE}" == "Darwin" ]; then
+                sudo ln -s ${libPath}/${alibName}.dylib /usr/local/lib/${alibName}.dylib
+                sudo ln -s /usr/local/lib/${alibName}.dylib /usr/local/lib/${alibName}_arm64.dylib
+            else
+                ln -s ${libPath}/${alibName}.so /lib64/${alibName}.so && ldconfig
+            fi
             ;;
         "Windows")
             ln -s ${libPath}/${alibName}.dll /c/Windows/System32/${alibName}.dll
@@ -66,6 +71,7 @@ create_symlink() {
             ;;
     esac
 }
+
 
 install() {
     echo ${OSTYPE}
