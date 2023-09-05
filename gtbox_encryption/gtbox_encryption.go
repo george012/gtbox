@@ -11,8 +11,8 @@ package gtbox_encryption
 #include <string.h> // 添加这一行
 extern int GT_encryptionStr(const char *inputStr,char *outputStr,const char *keyString);
 extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *keyString);
-extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString)
-extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString)
+extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString);
+extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString);
 */
 import "C"
 
