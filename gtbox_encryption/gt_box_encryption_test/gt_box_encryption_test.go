@@ -37,3 +37,8 @@ func TestGTEnc(t *testing.T) {
 		fmt.Printf("en_str[%s]%d\n%s%d", de_str, b_len, cd_str, cd_len)
 	}
 }
+
+func TestGetEnLibVersion(t *testing.T) {
+	avstion := gtbox_encryption.GetEncryptionLibVersion()
+	fmt.Printf("%s", avstion)
+}
