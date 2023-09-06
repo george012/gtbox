@@ -13,7 +13,7 @@ extern int GT_encryptionStr(const char *inputStr,char *outputStr,const char *key
 extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *keyString);
 extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString);
 extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString);
-extern char *GetVersion();
+extern const char *GetVersion();
 */
 import "C"
 

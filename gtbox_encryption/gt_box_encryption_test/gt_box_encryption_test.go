@@ -22,7 +22,7 @@ func TestGTEncryptionFunctions(t *testing.T) {
 
 func TestGTEnc(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		pre_en_str := fmt.Sprintf("%d%v%d", i, "dsfsdf", i+1)
+		pre_en_str := fmt.Sprintf("%d%s%d", i, "dsfsdf", i+1)
 		en_key := "test"
 		alen := len(pre_en_str)
 		en_Str := gtbox_encryption.GTEnc(pre_en_str, en_key)
@@ -32,9 +32,11 @@ func TestGTEnc(t *testing.T) {
 		de_str := gtbox_encryption.GTDec(en_Str, en_key)
 		b_len := len(de_str)
 
-		cd_str := gtbox_encryption.GTDecryptionGo(en_Str, en_key)
-		cd_len := len(cd_str)
-		fmt.Printf("en_str[%s]%d\n%s%d", de_str, b_len, cd_str, cd_len)
+		fmt.Printf("de_str[%s]%d\n", de_str, b_len)
+
+		//cd_str := gtbox_encryption.GTDecryptionGo(en_Str, en_key)
+		//cd_len := len(cd_str)
+		//fmt.Printf("en_str[%s]%d\n%s%d", de_str, b_len, cd_str, cd_len)
 	}
 }
 
