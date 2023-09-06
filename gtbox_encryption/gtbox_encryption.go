@@ -13,7 +13,7 @@ extern int GT_encryptionStr(const char *inputStr,char *outputStr,const char *key
 extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *keyString);
 extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString);
 extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString);
-extern void GetVersion(char **versionOut);
+extern int GetVersion(char **versionOut);
 */
 import "C"
 
@@ -26,7 +26,7 @@ import (
 // GetEncryptionLibVersion 获取加密库版本
 func GetEncryptionLibVersion() (version string) {
 	var c_version *C.char
-	isok := C.gt_dec(&c_version)
+	isok := int(C.GetVersion(&c_version))
 
 	if isok != 0 {
 		return ""
