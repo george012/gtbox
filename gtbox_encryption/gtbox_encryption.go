@@ -25,8 +25,9 @@ import (
 
 // GetEncryptionLibVersion 获取加密库版本
 func GetEncryptionLibVersion() (version string) {
-	cVersion := C.GetVersion()
-	version = C.GoString(cVersion)
+	var as *C.char
+	as = C.GetVersion()
+	version = C.GoString(as)
 	return version
 }
 
