@@ -34,9 +34,9 @@ func TestGTEnc(t *testing.T) {
 
 		fmt.Printf("de_str[%s]%d\n", de_str, b_len)
 
-		//cd_str := gtbox_encryption.GTDecryptionGo(en_Str, en_key)
-		//cd_len := len(cd_str)
-		//fmt.Printf("en_str[%s]%d\n%s%d", de_str, b_len, cd_str, cd_len)
+		cd_str := gtbox_encryption.GTDecryptionGo(en_Str, en_key)
+		cd_len := len(cd_str)
+		fmt.Printf("en_str[%s]%d\n%s%d", de_str, b_len, cd_str, cd_len)
 	}
 }
 
