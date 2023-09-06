@@ -64,6 +64,7 @@ create_symlink() {
             fi
             ;;
         "Windows")
+            [[ ${alibName} != lib* ]] || alibName="${alibName#lib}"
             ln -s ${libPath}/${alibName}.dll /c/Windows/System32/${alibName}.dll
             ;;
         *)
