@@ -13,6 +13,7 @@ extern int GT_encryptionStr(const char *inputStr,char *outputStr,const char *key
 extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *keyString);
 extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString);
 extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString);
+extern char *GetVersion();
 */
 import "C"
 
@@ -21,6 +22,13 @@ import (
 	"encoding/hex"
 	"unsafe"
 )
+
+// GetEncryptionLibVersion 获取加密库版本
+func GetEncryptionLibVersion() (version string) {
+	cVersion := C.GetVersion()
+	version = C.GoString(cVersion)
+	return version
+}
 
 // GTMD5EncryptionGo MD5加密
 func GTMD5EncryptionGo(str string) string {
