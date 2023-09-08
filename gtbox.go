@@ -13,6 +13,27 @@ import (
 	"syscall"
 )
 
+type RunMode int
+
+const (
+	RunModeDebug RunMode = iota
+	RunModeRelease
+	RunModeTest
+)
+
+func (rm RunMode) String() string {
+	switch rm {
+	case RunModeDebug:
+		return "Debug"
+	case RunModeRelease:
+		return "Release"
+	case RunModeTest:
+		return "Test"
+	default:
+		return "Debug"
+	}
+}
+
 type GTAppSignalInfo struct {
 	SigCode string
 	Msg     string
@@ -35,18 +56,29 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 // debugToCut App如果是Debug模式默认不开启日志切片，方便IDE调试
 // httpRequestTimeOut 网络请求超时时间
 // projectName--项目名称，
+// run_mode 运行模式 debug
 // logLevel--日志等级，
 // logMaxSaveTime--默认365天,
 // logSaveType--日志分片格式，默认按天分片，可选按小时分片
-func SetupGTBox(projectName string, debugMode bool, logLevel logrus.Level, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
+func SetupGTBox(projectName string, run_mode RunMode, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
 	debugToCut := false
-	if debugMode == false {
+	logLevel := logrus.DebugLevel
+	switch run_mode {
+	case RunModeDebug:
+		debugToCut = false
+		logLevel = logrus.DebugLevel
+	case RunModeTest:
 		debugToCut = true
+		logLevel = logrus.DebugLevel
+	case RunModeRelease:
+		logLevel = logrus.InfoLevel
 	}
+
 	gtbox_log.SetupLogTools(projectName, debugToCut, logLevel, logMaxSaveDays, logSaveType)
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
-	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\n",
+	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\n",
 		gtbox_log.ProjectName,
+		run_mode.String(),
 		gtbox_log.LogLevel.String(),
 		gtbox_log.LogPath,
 		logSaveType.String(),
