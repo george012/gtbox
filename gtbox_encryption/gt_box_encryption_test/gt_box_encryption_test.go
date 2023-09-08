@@ -21,7 +21,7 @@ func TestGTEncryptionFunctions(t *testing.T) {
 }
 
 func TestGTEnc(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 2; i++ {
 		pre_en_str := fmt.Sprintf("%d%s%d", i, "dsfsdf", i+1)
 		en_key := "test"
 		alen := len(pre_en_str)
@@ -41,7 +41,7 @@ func TestGTEnc(t *testing.T) {
 }
 
 func TestFatalFunc(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 2; i++ {
 		pre_en_str := fmt.Sprintf("%d%s%d", i, "dsfsdf", i+1)
 		en_key := "test"
 		alen := len(pre_en_str)

@@ -160,8 +160,7 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 	return result
 }
 
-// FatalEnc 低效加密
-func FatalEnc(srcString string, keyString string) (resultStr string) {
+func FatalEnc(srcString string, keyString string) string {
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))
@@ -169,19 +168,16 @@ func FatalEnc(srcString string, keyString string) (resultStr string) {
 
 	var output *C.char
 	length := int(C.fatal_enc(srcCasting, &output, cKeyString))
+	defer C.free(unsafe.Pointer(output)) // Ensure we free the memory allocated in C
 
 	if length <= 0 {
-		return "" // 或者处理错误
+		return ""
 	}
 
-	result := C.GoString(output)
-	C.free(unsafe.Pointer(output))
-
-	return result
+	return C.GoString(output)
 }
 
-// FatalDec 低效解密
-func FatalDec(srcString string, keyString string) (resultStr string) {
+func FatalDec(srcString string, keyString string) string {
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))
@@ -189,13 +185,11 @@ func FatalDec(srcString string, keyString string) (resultStr string) {
 
 	var output *C.char
 	length := int(C.fatal_dec(srcCasting, &output, cKeyString))
+	defer C.free(unsafe.Pointer(output)) // Ensure we free the memory allocated in C
 
 	if length <= 0 {
-		return "" // 或者处理错误
+		return ""
 	}
 
-	result := C.GoString(output)
-	C.free(unsafe.Pointer(output))
-
-	return result
+	return C.GoString(output)
 }
