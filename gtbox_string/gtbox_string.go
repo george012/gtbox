@@ -100,3 +100,11 @@ func GTStruct2JsonString(value interface{}) (jsonString string) {
 	jsonString = string(cuValue)
 	return jsonString
 }
+
+// DelStringEndNewlines 删除字符串结尾的 \n or \r\n
+func DelStringEndNewlines(s *string) {
+	b := []byte(*s)
+	b = bytes.TrimSuffix(b, []byte("\r\n"))
+	b = bytes.TrimSuffix(b, []byte("\n"))
+	*s = string(b)
+}

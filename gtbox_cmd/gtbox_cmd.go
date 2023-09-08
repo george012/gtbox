@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/george012/gtbox/gtbox_encoding"
+	"github.com/george012/gtbox/gtbox_string"
 	"os/exec"
 	"runtime"
 	"sync"
@@ -34,7 +35,11 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	var cmd *exec.Cmd
 	switch os := runtime.GOOS; os {
 	case "windows":
-		cmd = exec.Command("cmd", "/C", command)
+		bit_bahs_path := getWindowsGitBashPath()
+		if bit_bahs_path == "" {
+		} else {
+			cmd = exec.Command(bit_bahs_path, "-c", command)
+		}
 	case "darwin":
 		cmd = exec.Command("/bin/zsh", "-c", command)
 	default:
@@ -60,6 +65,7 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	if gcmd.results == nil {
 		gcmd.results = &sync.Map{}
 	}
+	gtbox_string.DelStringEndNewlines(&result)
 
 	gcmd.results.Store(key, result)
 }
