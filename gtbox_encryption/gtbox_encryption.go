@@ -14,6 +14,8 @@ extern int GT_decryptionStr(const char *inputStr, char *outputStr, const char *k
 extern int gt_dec(const char *inputStr, char **outputStr, const char *keyString);
 extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString);
 extern const char* GT_getVerison();
+extern int fatal_enc(const char *inputStr, char **outputStr, char *keyString);
+extern int fatal_dec(const char *inputStr, char **outputStr, char *keyString);
 */
 import "C"
 
@@ -147,6 +149,46 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 
 	var output *C.char
 	length := int(C.gt_dec(srcCasting, &output, cKeyString))
+
+	if length <= 0 {
+		return "" // 或者处理错误
+	}
+
+	result := C.GoString(output)
+	C.free(unsafe.Pointer(output))
+
+	return result
+}
+
+// FatalEnc 低效加密
+func FatalEnc(srcString string, keyString string) (resultStr string) {
+	srcCasting := C.CString(srcString)
+	cKeyString := C.CString(keyString)
+	defer C.free(unsafe.Pointer(srcCasting))
+	defer C.free(unsafe.Pointer(cKeyString))
+
+	var output *C.char
+	length := int(C.fatal_enc(srcCasting, &output, cKeyString))
+
+	if length <= 0 {
+		return "" // 或者处理错误
+	}
+
+	result := C.GoString(output)
+	C.free(unsafe.Pointer(output))
+
+	return result
+}
+
+// FatalDec 低效解密
+func FatalDec(srcString string, keyString string) (resultStr string) {
+	srcCasting := C.CString(srcString)
+	cKeyString := C.CString(keyString)
+	defer C.free(unsafe.Pointer(srcCasting))
+	defer C.free(unsafe.Pointer(cKeyString))
+
+	var output *C.char
+	length := int(C.fatal_dec(srcCasting, &output, cKeyString))
 
 	if length <= 0 {
 		return "" // 或者处理错误
