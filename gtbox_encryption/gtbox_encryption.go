@@ -16,6 +16,7 @@ extern int gt_enc(const char *inputStr, char **outputStr, const char *keyString)
 extern const char* GT_getVerison();
 extern int fatal_enc(const char *inputStr, char **outputStr, char *keyString);
 extern int fatal_dec(const char *inputStr, char **outputStr, char *keyString);
+extern char* GT_MD5(char *inputStr);
 */
 import "C"
 
@@ -28,6 +29,17 @@ import (
 // GetEncryptionLibVersion 获取加密库版本
 func GetEncryptionLibVersion() (version string) {
 	return C.GoString(C.GT_getVerison())
+}
+
+func GTMd5(srcString string) string {
+	srcCasting := C.CString(srcString)
+	defer C.free(unsafe.Pointer(srcCasting))
+
+	var md5Str *C.char
+	md5Str = C.GT_MD5(srcCasting)
+	defer C.free(unsafe.Pointer(md5Str))
+
+	return C.GoString(md5Str)
 }
 
 // GTMD5EncryptionGo MD5加密
