@@ -5,6 +5,7 @@ package gtbox_log
 
 import (
 	"fmt"
+	"github.com/george012/gtbox/gtbox_color"
 	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -270,20 +271,17 @@ func LogWarnf(format string, args ...interface{}) {
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
 func LogF(style GTLogStyle, format string, args ...interface{}) {
-	green := "\033[32m"
-	red := "\033[31m"
-	reset := "\033[0m"
 
 	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
 	colorFormat := re.ReplaceAllStringFunc(format, func(s string) string {
 		switch {
 		case strings.HasPrefix(s, "%"):
-			return red + s + reset
+			return gtbox_color.ANSIColorForegroundYellow + s + gtbox_color.ANSIColorReset
 		case s == "[" || s == "]":
 			return s // 保持 `[` 和 `]` 的原始颜色
 		default:
-			return green + s + reset
+			return gtbox_color.ANSIColorForegroundGreen + s + gtbox_color.ANSIColorReset
 		}
 	})
 
