@@ -28,11 +28,7 @@ import (
 
 // GetEncryptionLibVersion 获取加密库版本
 func GetEncryptionLibVersion() (version string) {
-	var verStr *C.char
-	verStr = C.GT_getVerison()
-	defer C.free(unsafe.Pointer(verStr))
-
-	return C.GoString(verStr)
+	return C.GoString(C.GT_getVerison())
 }
 
 func GTMd5(srcString string) string {
