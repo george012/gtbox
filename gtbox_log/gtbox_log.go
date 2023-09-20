@@ -281,7 +281,13 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		case s == "[" || s == "]":
 			return s // 保持 `[` 和 `]` 的原始颜色
 		default:
-			return gtbox_color.ANSIColorForegroundGreen + s + gtbox_color.ANSIColorReset
+			if style == GTLogStyleError {
+				return gtbox_color.ANSIColorForegroundBrightRed + s + gtbox_color.ANSIColorReset
+			} else if style == GTLogStyleInfo {
+				return gtbox_color.ANSIColorForegroundBrightGreen + s + gtbox_color.ANSIColorReset
+			} else {
+				return gtbox_color.ANSIColorForegroundBrightCyan + s + gtbox_color.ANSIColorReset
+			}
 		}
 	})
 
