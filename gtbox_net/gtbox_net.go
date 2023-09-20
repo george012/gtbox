@@ -6,9 +6,24 @@ package gtbox_net
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_string"
+	"net"
 	"os/exec"
 	"strings"
 )
+
+// GTGetLocalIPV4WithCurrentActive 获取当前活动网卡的IPV4地址
+func GTGetLocalIPV4WithCurrentActive() string {
+	// 尝试连接到公共地址但不发送数据
+	conn, err := net.Dial("udp", "1.1.1.1:80")
+	if err != nil {
+		return ""
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String()
+}
 
 // GTGetPublicIPV4 获取公网IP
 func GTGetPublicIPV4() *string {
