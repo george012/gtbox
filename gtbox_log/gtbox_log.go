@@ -277,7 +277,7 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 	colorFormat := re.ReplaceAllStringFunc(format, func(s string) string {
 		switch {
 		case strings.HasPrefix(s, "%"):
-			return gtbox_color.ANSIColorForegroundYellow + s + gtbox_color.ANSIColorReset
+			return gtbox_color.ANSIColorForegroundBrightYellow + s + gtbox_color.ANSIColorReset
 		case s == "[" || s == "]":
 			return s // 保持 `[` 和 `]` 的原始颜色
 		default:
