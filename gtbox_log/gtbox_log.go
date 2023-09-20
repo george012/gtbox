@@ -274,11 +274,16 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 	reset := "\033[0m"
 
 	// 在format中为每个占位符上色
-	formatSegments := strings.Split(format, "%")
-	coloredFormat := green + formatSegments[0] + reset
-	for i := 1; i < len(formatSegments); i++ {
-		coloredFormat += "%" + red + formatSegments[i] + reset
+	formatSegments := strings.SplitAfter(format, "%")
+	coloredFormat := green
+	for _, segment := range formatSegments {
+		if len(segment) > 1 {
+			coloredFormat += segment[:1] + red + segment[1:] + green
+		} else {
+			coloredFormat += segment
+		}
 	}
+	coloredFormat += reset
 
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
@@ -291,7 +296,7 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		callerClass := fullName[:lastDot]
 		method := fullName[lastDot+1:]
 
-		coloredFormat = fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, coloredFormat)
+		coloredFormat = fmt.Sprintf("[pkg--%s--][method--%s--] "+coloredFormat, callerClass, method)
 	}
 
 	switch style {
