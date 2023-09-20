@@ -275,6 +275,12 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 
 	endForMat := green + format + reset // 绿色
 
+	// 使用红色为每个参数上色
+	coloredArgs := make([]interface{}, len(args))
+	for i, arg := range args {
+		coloredArgs[i] = red + fmt.Sprintf("%v", arg) + reset
+	}
+
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
 		fullName := runtime.FuncForPC(pc).Name()
@@ -286,21 +292,21 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		callerClass := fullName[:lastDot]
 		method := fullName[lastDot+1:]
 
-		endForMat += fmt.Sprintf(" [pkg--%s--][method--%s--] ", callerClass, method) + red + format + reset // 该部分固定为绿色，拼接部分为红色
+		endForMat = fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
 	}
 
 	switch style {
 	case GTLogStyleFatal:
-		Instance().Fatalf(endForMat, args...)
+		Instance().Fatalf(endForMat, coloredArgs...)
 	case GTLogStyleTrace:
-		Instance().Tracef(endForMat, args...)
+		Instance().Tracef(endForMat, coloredArgs...)
 	case GTLogStyleInfo:
-		Instance().Ininfof(endForMat, args...)
+		Instance().Ininfof(endForMat, coloredArgs...)
 	case GTLogStyleWarning:
-		Instance().Warnf(endForMat, args...)
+		Instance().Warnf(endForMat, coloredArgs...)
 	case GTLogStyleError:
-		Instance().Errorf(endForMat, args...)
+		Instance().Errorf(endForMat, coloredArgs...)
 	case GTLogStyleDebug:
-		Instance().Debugf(endForMat, args...)
+		Instance().Debugf(endForMat, coloredArgs...)
 	}
 }
