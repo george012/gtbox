@@ -8,6 +8,7 @@ import (
 	"github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -140,7 +141,7 @@ func Instance() *GTLog {
 	return ALog
 }
 
-func (aLog *GTLog) Ininfof(format string, args ...interface{}) {
+func (aLog *GTLog) Infof(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
@@ -181,7 +182,7 @@ func (aLog *GTLog) Fatalf(format string, args ...interface{}) {
 
 // LogInfof format格式化log--info信息
 func LogInfof(format string, args ...interface{}) {
-	Instance().Ininfof(format, args...)
+	Instance().Infof(format, args...)
 }
 
 // LogErrorf format格式化log--error信息
@@ -273,17 +274,18 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 	red := "\033[31m"
 	reset := "\033[0m"
 
-	// 在format中为每个占位符上色
-	formatSegments := strings.SplitAfter(format, "%")
-	coloredFormat := green
-	for _, segment := range formatSegments {
-		if len(segment) > 1 {
-			coloredFormat += segment[:1] + red + segment[1:] + green
-		} else {
-			coloredFormat += segment
+	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
+	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
+	colorFormat := re.ReplaceAllStringFunc(format, func(s string) string {
+		switch {
+		case strings.HasPrefix(s, "%"):
+			return red + s + reset
+		case s == "[" || s == "]":
+			return s // 保持 `[` 和 `]` 的原始颜色
+		default:
+			return green + s + reset
 		}
-	}
-	coloredFormat += reset
+	})
 
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
@@ -296,21 +298,22 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		callerClass := fullName[:lastDot]
 		method := fullName[lastDot+1:]
 
-		coloredFormat = fmt.Sprintf("[pkg--%s--][method--%s--] "+coloredFormat, callerClass, method)
+		prefixFormat := fmt.Sprintf("[pkg--%s--][method--%s--] ", callerClass, method)
+		colorFormat = prefixFormat + colorFormat
 	}
 
 	switch style {
 	case GTLogStyleFatal:
-		Instance().Fatalf(coloredFormat, args...)
+		Instance().Fatalf(colorFormat, args...)
 	case GTLogStyleTrace:
-		Instance().Tracef(coloredFormat, args...)
+		Instance().Tracef(colorFormat, args...)
 	case GTLogStyleInfo:
-		Instance().Ininfof(coloredFormat, args...)
+		Instance().Infof(colorFormat, args...)
 	case GTLogStyleWarning:
-		Instance().Warnf(coloredFormat, args...)
+		Instance().Warnf(colorFormat, args...)
 	case GTLogStyleError:
-		Instance().Errorf(coloredFormat, args...)
+		Instance().Errorf(colorFormat, args...)
 	case GTLogStyleDebug:
-		Instance().Debugf(coloredFormat, args...)
+		Instance().Debugf(colorFormat, args...)
 	}
 }
