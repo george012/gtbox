@@ -269,7 +269,12 @@ func LogWarnf(format string, args ...interface{}) {
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
 func LogF(style GTLogStyle, format string, args ...interface{}) {
-	endForMat := format
+	green := "\033[32m"
+	red := "\033[31m"
+	reset := "\033[0m"
+
+	endForMat := green + format + reset // 绿色
+
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
 		fullName := runtime.FuncForPC(pc).Name()
@@ -281,7 +286,7 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		callerClass := fullName[:lastDot]
 		method := fullName[lastDot+1:]
 
-		endForMat = fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
+		endForMat += fmt.Sprintf(" [pkg--%s--][method--%s--] ", callerClass, method) + red + format + reset // 该部分固定为绿色，拼接部分为红色
 	}
 
 	switch style {
