@@ -53,28 +53,35 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 // SetupGTBox
 // 必须--YES
 // 必须使用此方法初始化工具库,未使用此方法初始化，无法使用完整功能，亦存在兼容性问题
-// debugToCut App如果是Debug模式默认不开启日志切片，方便IDE调试
+// logMaxSaveDays Log是否开启文件存储模式
+// log_path 自定义日志目录,默认为:/usr/logs/${projectName},如果传"" 即使用默认值
 // httpRequestTimeOut 网络请求超时时间
 // projectName--项目名称，
 // run_mode 运行模式 debug
 // logLevel--日志等级，
 // logMaxSaveTime--默认365天,
 // logSaveType--日志分片格式，默认按天分片，可选按小时分片
-func SetupGTBox(projectName string, run_mode RunMode, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
-	debugToCut := false
+func SetupGTBox(projectName string, run_mode RunMode, log_path string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
+	enableSaveLogFile := false
 	logLevel := logrus.DebugLevel
 	switch run_mode {
 	case RunModeDebug:
-		debugToCut = false
+		enableSaveLogFile = false
 		logLevel = logrus.DebugLevel
 	case RunModeTest:
-		debugToCut = true
+		enableSaveLogFile = true
 		logLevel = logrus.DebugLevel
 	case RunModeRelease:
+		enableSaveLogFile = true
 		logLevel = logrus.InfoLevel
 	}
 
-	gtbox_log.SetupLogTools(projectName, debugToCut, logLevel, logMaxSaveDays, logSaveType)
+	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType)
+
+	if log_path != "" {
+		gtbox_log.LogPath = log_path
+	}
+
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\n",
 		gtbox_log.ProjectName,

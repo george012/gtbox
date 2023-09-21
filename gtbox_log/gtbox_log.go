@@ -71,14 +71,14 @@ type GTLog struct {
 }
 
 var (
-	ALog           *GTLog
-	GTLogOnce      sync.Once
-	ProjectName    = "test"
-	LogLevel       = logrus.DebugLevel
-	LogSaveMaxDays int64
-	LogSaveFlag    = GTLogSaveTypeDays
-	LogPath        = "./logs/run"
-	LogDebugToCut  = false //debug模式下是否开启日志分割	默认false方便IDE调试
+	ALog              *GTLog
+	GTLogOnce         sync.Once
+	ProjectName       = "test"
+	LogLevel          = logrus.DebugLevel
+	LogSaveMaxDays    int64
+	LogSaveFlag       = GTLogSaveTypeDays
+	LogPath           = "./logs/run"
+	EnableSaveLogFile = false // EnableSaveLogFile	开启日志文件存储
 )
 
 // GTGetLogsDir 获取Log目录
@@ -89,7 +89,7 @@ func GTGetLogsDir() string {
 func (alog *GTLog) Setup() {
 
 	//	设置Log
-	if LogDebugToCut == true {
+	if EnableSaveLogFile == true {
 
 		if runtime.GOOS == "linux" {
 			LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
@@ -119,12 +119,12 @@ func (alog *GTLog) Setup() {
 	}
 }
 
-func SetupLogTools(productName string, debugToCut bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+func SetupLogTools(productName string, enableSaveLogFile bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
 	ProjectName = productName
 	LogLevel = settingLogLeve
 	LogSaveMaxDays = logMaxSaveDays
 	LogSaveFlag = logSaveType
-	LogDebugToCut = debugToCut
+	EnableSaveLogFile = enableSaveLogFile
 	Instance().Setup()
 }
 
