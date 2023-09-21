@@ -5,6 +5,7 @@ package gtbox
 
 import (
 	"fmt"
+	"github.com/george012/gtbox/gtbox_coding"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
 	"github.com/sirupsen/logrus"
@@ -83,7 +84,7 @@ func SetupGTBox(projectName string, run_mode RunMode, log_path string, logMaxSav
 	}
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
-	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\n",
+	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\n",
 		gtbox_log.ProjectName,
 		run_mode.String(),
 		gtbox_log.LogLevel.String(),
@@ -91,5 +92,6 @@ func SetupGTBox(projectName string, run_mode RunMode, log_path string, logMaxSav
 		logSaveType.String(),
 		logMaxSaveDays,
 		gtbox_http.DefaultTimeout,
+		gtbox_coding.GetProjectCodeLines(),
 	)
 }

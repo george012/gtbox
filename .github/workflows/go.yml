@@ -90,7 +90,39 @@ jobs:
       - name: Set APP_VERSION env
         run: |
           APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) \
-          && echo APP_OLD_VERSION=${APP_VERSION%.*}.$((${APP_VERSION##*.}-2)) >> ${GITHUB_ENV}
+
+          function get_pre_del_tag {
+              local v_str=$1
+              baseStr=$(echo $v_str | cut -d'.' -f1)
+              base=${baseStr//v/}
+              major=$(echo $v_str | cut -d'.' -f2)
+              minor=$(echo $v_str | cut -d'.' -f3)
+
+              if ((minor>0)); then
+                  minor=$((minor-1))
+              else
+                  minor=999
+                  if ((major>0)); then
+                      major=$((major-1))
+                  else
+                      major=999
+                      if ((base>0)); then
+                          base=$((base-1))
+                      else
+                          echo "Error: Version cannot be decremented."
+                          exit 1
+                      fi
+                  fi
+              fi
+
+              pre_v_no="${base}.${major}.${minor}"
+              echo $pre_v_no
+          }
+
+          APP_OLD_VERSION=$(get_pre_del_tag $(get_pre_del_tag $APP_VERSION))
+
+          echo "Old version to remove: ${APP_OLD_VERSION}"
+          echo APP_OLD_VERSION=${APP_OLD_VERSION} >> ${GITHUB_ENV}
 
       - name: Remove Old Release
         run: |

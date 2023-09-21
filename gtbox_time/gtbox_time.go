@@ -1,3 +1,6 @@
+/*
+Package gtbox_time 时间相关工具
+*/
 package gtbox_time
 
 import (

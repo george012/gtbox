@@ -38,12 +38,12 @@ function to_run() {
         minor=$(echo ${CURRENT_VERSION}| cut -d'.' -f3)       # Get the minor version (1)
 
         minor=$((minor+1))                          # Increment the minor version
-        if ((minor==100)); then                     # Check if minor version is 100
+        if ((minor==1000)); then                     # Check if minor version is 1000
             minor=0                                 # Reset minor version to 0
             major=$((major+1))                      # Increment major version
         fi
 
-        if ((major==100)); then                     # Check if major version is 100
+        if ((major==1000)); then                     # Check if major version is 1000
             major=0                                 # Reset major version to 0
             base=$((base+1))                        # Increment base version
         fi
@@ -77,11 +77,11 @@ function get_pre_del_version_no {
     if ((minor>0)); then                      # Check if minor version is more than 0
         minor=$((minor-1))                     # Decrement the minor version
     else
-        minor=99                               # Reset minor version to 99
+        minor=999                               # Reset minor version to 999
         if ((major>0)); then                   # Check if major version is more than 0
             major=$((major-1))                 # Decrement major version
         else
-            major=99                           # Reset major version to 99
+            major=999                           # Reset major version to 999
             if ((base>0)); then                # Check if base version is more than 0
                 base=$((base-1))               # Decrement base version
             else
@@ -127,7 +127,7 @@ function git_handle_push() {
 handle_input(){
     if [[ $1 == "-get_pre_del_tag_name" ]]; then
         pre_tag=$(get_pre_del_version_no "${CURRENT_VERSION}")
-        echo "Pre Del Tag With " "$pre_tag"
+        echo $pre_tag
     elif [ -z "$1" ] || [ "$1" == "auto" ]; then
 
         if to_run "$1"; then
