@@ -25,8 +25,7 @@ GetOSType(){
 GetOSType
 
 removeCache() {
-    rm -rf ./${ProductName}_config.go
-    rm -rf ./install_${ProductName}.sh
+    sudo rm -rf ./install_${ProductName}.sh
 }
 
 parse_json(){
@@ -104,7 +103,7 @@ uninstall() {
     complate_gopath_dir=${GOPATH}
 
     # 找到所有版本的库并删除
-    find ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@* -type d -exec rm -rf {} \;
+    find ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@* -type d -exec sudo rm -rf {} \;
 
     # 删除所有自定义库
     CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}/libs |awk '/^d/ {print $NF}')
@@ -113,16 +112,16 @@ uninstall() {
     do
         if [ ${OSTYPE} == "Darwin" ] # Darwin
         then
-            rm -rf /usr/local/lib/lib${libName}_arm64.dylib
-            rm -rf /usr/local/lib/lib${libName}.dylib
+            sudo rm -rf /usr/local/lib/lib${libName}_arm64.dylib
+            sudo rm -rf /usr/local/lib/lib${libName}.dylib
         elif [ ${OSTYPE} == "Linux" ] # Linux
         then
-            rm -rf /lib64/lib${libName}.so
+            sudo rm -rf /lib64/lib${libName}.so
         elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
         then
             ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
             complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
-            rm -rf /c/Windows/System32/${libName}.dll
+            sudo rm -rf /c/Windows/System32/${libName}.dll
         else
             echo ${OSTYPE}
         fi
