@@ -142,39 +142,39 @@ func Instance() *GTLog {
 	return ALog
 }
 
-func (aLog *GTLog) Infof(format string, args ...interface{}) {
+func (aLog *GTLog) infof(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
 	logrus.Infof(format, args...)
 }
 
-func (aLog *GTLog) Warnf(format string, args ...interface{}) {
+func (aLog *GTLog) warnf(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
 	logrus.Warnf(format, args...)
 }
 
-func (aLog *GTLog) Errorf(format string, args ...interface{}) {
+func (aLog *GTLog) errorf(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
 	logrus.Errorf(format, args...)
 }
-func (aLog *GTLog) Debugf(format string, args ...interface{}) {
+func (aLog *GTLog) debugf(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
 	logrus.Debugf(format, args...)
 }
-func (aLog *GTLog) Tracef(format string, args ...interface{}) {
+func (aLog *GTLog) tracef(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
 	logrus.Tracef(format, args...)
 }
-func (aLog *GTLog) Fatalf(format string, args ...interface{}) {
+func (aLog *GTLog) fatalf(format string, args ...interface{}) {
 	aLog.mux.Lock()
 	defer aLog.mux.Unlock()
 
@@ -183,87 +183,32 @@ func (aLog *GTLog) Fatalf(format string, args ...interface{}) {
 
 // LogInfof format格式化log--info信息
 func LogInfof(format string, args ...interface{}) {
-	Instance().Infof(format, args...)
+	LogF(GTLogStyleInfo, format, args...)
 }
 
 // LogErrorf format格式化log--error信息
 func LogErrorf(format string, args ...interface{}) {
-	pc, _, _, _ := runtime.Caller(1)
-	fullName := runtime.FuncForPC(pc).Name()
-
-	lastDot := strings.LastIndex(fullName, ".")
-	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-		return
-	}
-	callerClass := fullName[:lastDot]
-	method := fullName[lastDot+1:]
-
-	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
-	Instance().Errorf(endForMat, args...)
+	LogF(GTLogStyleError, format, args...)
 }
 
 // LogDebugf format格式化log--debug信息
 func LogDebugf(format string, args ...interface{}) {
-	pc, _, _, _ := runtime.Caller(1)
-	fullName := runtime.FuncForPC(pc).Name()
-
-	lastDot := strings.LastIndex(fullName, ".")
-	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-		return
-	}
-	callerClass := fullName[:lastDot]
-	method := fullName[lastDot+1:]
-
-	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
-	Instance().Debugf(endForMat, args...)
+	LogF(GTLogStyleDebug, format, args...)
 }
 
 // LogTracef format格式化log--Trace信息
 func LogTracef(format string, args ...interface{}) {
-	pc, _, _, _ := runtime.Caller(1)
-	fullName := runtime.FuncForPC(pc).Name()
-
-	lastDot := strings.LastIndex(fullName, ".")
-	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-		return
-	}
-	callerClass := fullName[:lastDot]
-	method := fullName[lastDot+1:]
-
-	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
-	Instance().Tracef(endForMat, args...)
+	LogF(GTLogStyleTrace, format, args...)
 }
 
 // LogFatalf format格式化log--Fatal信息
 func LogFatalf(format string, args ...interface{}) {
-	pc, _, _, _ := runtime.Caller(1)
-	fullName := runtime.FuncForPC(pc).Name()
-
-	lastDot := strings.LastIndex(fullName, ".")
-	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-		return
-	}
-	callerClass := fullName[:lastDot]
-	method := fullName[lastDot+1:]
-
-	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
-	Instance().Fatalf(endForMat, args...)
+	LogF(GTLogStyleFatal, format, args...)
 }
 
 // LogWarnf format格式化log--Warning信息
 func LogWarnf(format string, args ...interface{}) {
-	pc, _, _, _ := runtime.Caller(1)
-	fullName := runtime.FuncForPC(pc).Name()
-
-	lastDot := strings.LastIndex(fullName, ".")
-	if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-		return
-	}
-	callerClass := fullName[:lastDot]
-	method := fullName[lastDot+1:]
-
-	endForMat := fmt.Sprintf("[pkg--%s--][method--%s--] [%v]", callerClass, method, format)
-	Instance().Warnf(endForMat, args...)
+	LogF(GTLogStyleWarning, format, args...)
 }
 
 // LogF 快捷日志Function，含模块字段封装
@@ -308,16 +253,16 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 
 	switch style {
 	case GTLogStyleFatal:
-		Instance().Fatalf(colorFormat, args...)
+		Instance().fatalf(colorFormat, args...)
 	case GTLogStyleTrace:
-		Instance().Tracef(colorFormat, args...)
+		Instance().tracef(colorFormat, args...)
 	case GTLogStyleInfo:
-		Instance().Infof(colorFormat, args...)
+		Instance().infof(colorFormat, args...)
 	case GTLogStyleWarning:
-		Instance().Warnf(colorFormat, args...)
+		Instance().warnf(colorFormat, args...)
 	case GTLogStyleError:
-		Instance().Errorf(colorFormat, args...)
+		Instance().errorf(colorFormat, args...)
 	case GTLogStyleDebug:
-		Instance().Debugf(colorFormat, args...)
+		Instance().debugf(colorFormat, args...)
 	}
 }
