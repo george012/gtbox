@@ -25,7 +25,7 @@ GetOSType(){
 GetOSType
 
 removeCache() {
-    sudo rm -rf ./install_${ProductName}.sh
+    rm -rf ./install_${ProductName}.sh
 }
 
 parse_json(){
@@ -56,15 +56,15 @@ create_symlink() {
             [[ ${alibName} == lib* ]] || alibName="${prefix}${alibName}"
 
             if [ "${OSTYPE}" == "Darwin" ]; then
-                sudo ln -s ${libPath}/${alibName}.dylib /usr/local/lib/${alibName}.dylib
-                sudo ln -s /usr/local/lib/${alibName}.dylib /usr/local/lib/${alibName}_arm64.dylib
+                sudo ln -sf ${libPath}/${alibName}.dylib /usr/local/lib/${alibName}.dylib
+                sudo ln -sf /usr/local/lib/${alibName}.dylib /usr/local/lib/${alibName}_arm64.dylib
             else
-                ln -s ${libPath}/${alibName}.so /lib64/${alibName}.so && ldconfig
+                ln -sf ${libPath}/${alibName}.so /lib64/${alibName}.so && ldconfig
             fi
             ;;
         "Windows")
             [[ ${alibName} != lib* ]] || alibName="${alibName#lib}"
-            ln -s ${libPath}/${alibName}.dll /c/Windows/System32/${alibName}.dll
+            ln -sf ${libPath}/${alibName}.dll /c/Windows/System32/${alibName}.dll
             ;;
         *)
             echo ${OSTYPE}
@@ -72,18 +72,18 @@ create_symlink() {
     esac
 }
 
-
 install() {
-    echo ${OSTYPE}
+    echo "install to "${OSTYPE}
 
     complate_gopath_dir=${GOPATH}
     if [ ${OSTYPE} == "Windows" ]
     then
         ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
         complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
+        find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec rm -rf {} \;
+    else
+        find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec sudo rm -rf {} \;
     fi
-
-    find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec sudo rm -rf {} \;
 
     last_repo_version=$(get_repo_latest_version)
 
@@ -100,32 +100,55 @@ install() {
 }
 
 uninstall() {
+    echo "uninstall with "${OSTYPE}
+
     complate_gopath_dir=${GOPATH}
+    if [ ${OSTYPE} == "Windows" ]
+    then
+        ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
+        complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
+    fi
+    last_repo_version=$(get_repo_latest_version)
+    CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@${last_repo_version}/libs |awk '/^d/ {print $NF}') \
 
-    # 找到所有版本的库并删除
-    find ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}@* -type d -exec sudo rm -rf {} \;
+    for libName in ${CustomLibs}; do
+        local prefix="lib"
+        case ${OSTYPE} in
+            "Darwin"|"Linux")
+                # 如果 libName 不是以 "lib" 开头，则添加 "lib" 前缀
+                [[ ${libName} == lib* ]] || libName="${prefix}${alibName}"
 
-    # 删除所有自定义库
-    CustomLibs=$(ls -l ${complate_gopath_dir}/pkg/mod/github.com/george012/${ProductName}/libs |awk '/^d/ {print $NF}')
+                if [ "${OSTYPE}" == "Darwin" ]; then
+                    sudo rm -f /usr/local/lib/${libName}.dylib || echo "Failed to remove ${libName}.dylib"
+                    sudo rm -f /usr/local/lib/${libName}_arm64.dylib || echo "Failed to remove ${libName}_arm64.dylib"
+                else
+                    sudo rm -f /lib64/${libName}.so || echo "Failed to remove ${libName}.so" && ldconfig
+                fi
 
-    for libName in ${CustomLibs}
-    do
-        if [ ${OSTYPE} == "Darwin" ] # Darwin
-        then
-            sudo rm -rf /usr/local/lib/lib${libName}_arm64.dylib
-            sudo rm -rf /usr/local/lib/lib${libName}.dylib
-        elif [ ${OSTYPE} == "Linux" ] # Linux
-        then
-            sudo rm -rf /lib64/lib${libName}.so
-        elif [ ${OSTYPE} == "Windows" ] # MINGW, windows, git-bash
-        then
-            ago_path_dir=`echo "${GOPATH/':\\'/'/'}" | sed 's/\"//g'`
-            complate_gopath_dir='/'`echo "${ago_path_dir}" | tr A-Z a-z`
-            sudo rm -rf /c/Windows/System32/${libName}.dll
-        else
-            echo ${OSTYPE}
-        fi
+                ;;
+            "Windows")
+                [[ ${libName} != lib* ]] || libName="${libName#lib}"
+                rm -f /c/Windows/System32/${libName}.dll || echo "Failed to remove ${libName}.dll"
+                rm -f /c/Windows/System32/${libName}_arm64.dll || echo "Failed to remove ${libName}_arm64.dll"
+
+                ;;
+            *)
+                echo ${OSTYPE}
+                ;;
+        esac
     done
+
+    case ${OSTYPE} in
+        "Darwin"|"Linux")
+            find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec sudo rm -rf {} \;
+            ;;
+        "Windows")
+            find ${complate_gopath_dir}/pkg/mod/github.com/george012 -depth -name "${ProductName}@*" -exec rm -rf {} \;
+            ;;
+        *)
+            echo ${OSTYPE}
+            ;;
+    esac
 
     removeCache
 }

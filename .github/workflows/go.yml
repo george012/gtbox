@@ -115,7 +115,7 @@ jobs:
                   fi
               fi
 
-              pre_v_no="${base}.${major}.${minor}"
+              pre_v_no="v${base}.${major}.${minor}"
               echo $pre_v_no
           }
 
