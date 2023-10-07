@@ -43,7 +43,7 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	case "darwin":
 		cmd = exec.Command("/bin/zsh", "-c", command)
 	default:
-		cmd = exec.Command("/bin/sh", "-c", command)
+		cmd = exec.Command("/bin/bash", "-c", command)
 	}
 
 	var out bytes.Buffer
