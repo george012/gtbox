@@ -8,7 +8,6 @@ import (
 	"github.com/george012/gtbox/gtbox_coding"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -55,33 +54,29 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 // 必须--YES
 // 必须使用此方法初始化工具库,未使用此方法初始化，无法使用完整功能，亦存在兼容性问题
 // logMaxSaveDays Log是否开启文件存储模式
-// log_path 自定义日志目录,默认为:/usr/logs/${projectName},如果传"" 即使用默认值
+// log_dir 自定义日志目录,默认为:/usr/logs/${projectName},如果传"" 即使用默认值
 // httpRequestTimeOut 网络请求超时时间
 // projectName--项目名称，
 // run_mode 运行模式 debug
 // logLevel--日志等级，
 // logMaxSaveTime--默认365天,
 // logSaveType--日志分片格式，默认按天分片，可选按小时分片
-func SetupGTBox(projectName string, run_mode RunMode, log_path string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
+func SetupGTBox(projectName string, run_mode RunMode, log_dir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
 	enableSaveLogFile := false
-	logLevel := logrus.DebugLevel
+	logLevel := gtbox_log.GTLogStyleDebug
 	switch run_mode {
 	case RunModeDebug:
 		enableSaveLogFile = false
-		logLevel = logrus.DebugLevel
+		logLevel = gtbox_log.GTLogStyleDebug
 	case RunModeTest:
 		enableSaveLogFile = true
-		logLevel = logrus.DebugLevel
+		logLevel = gtbox_log.GTLogStyleDebug
 	case RunModeRelease:
 		enableSaveLogFile = true
-		logLevel = logrus.InfoLevel
+		logLevel = gtbox_log.GTLogStyleInfo
 	}
 
-	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType)
-
-	if log_path != "" {
-		gtbox_log.Instance().LogPath = log_path
-	}
+	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, log_dir, logLevel, logMaxSaveDays, logSaveType)
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\n",

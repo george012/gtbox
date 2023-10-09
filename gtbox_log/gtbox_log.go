@@ -70,21 +70,16 @@ type GTLog struct {
 	mux               sync.RWMutex
 	EnableSaveLogFile bool
 	ProjectName       string
-	LogLevel          logrus.Level
+	LogLevel          GTLogStyle
 	LogSaveMaxDays    int64
 	LogSaveFlag       GTLogSaveType
-	LogPath           string
+	logDir            string
 }
 
 var (
 	currentLog *GTLog
 	gtLogOnce  sync.Once
 )
-
-// GTGetLogsDir 获取Log目录
-func GTGetLogsDir() string {
-	return Instance().LogPath
-}
 
 func Instance() *GTLog {
 	gtLogOnce.Do(func() {
@@ -93,6 +88,8 @@ func Instance() *GTLog {
 			ForceColors:   true,
 			FullTimestamp: true,
 		})
+
+		logrus.SetLevel(logrus.TraceLevel)
 		// 设置默认日志输出为控制台
 		logrus.SetOutput(os.Stdout)
 	})
@@ -103,12 +100,12 @@ func GetProjectName() string {
 	return Instance().ProjectName
 }
 
-func GetLogLevel() logrus.Level {
+func GetLogLevel() GTLogStyle {
 	return Instance().LogLevel
 }
 
 func GetLogFilePath() string {
-	return Instance().LogPath
+	return Instance().logDir
 }
 
 func (aLog *GTLog) infof(format string, args ...interface{}) {
@@ -186,26 +183,26 @@ func LogWarnf(format string, args ...interface{}) {
 // Params [args...] 模块名称：自定义字符串
 func LogF(style GTLogStyle, format string, args ...interface{}) {
 	colorFormat := format
-	//if Instance().EnableSaveLogFile != true {
-	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
-	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
-	colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
-		switch {
-		case strings.HasPrefix(s, "%"):
-			return gtbox_color.ANSIColorForegroundBrightYellow + s + gtbox_color.ANSIColorReset
-		case s == "[" || s == "]":
-			return s // 保持 `[` 和 `]` 的原始颜色
-		default:
-			if style == GTLogStyleError {
-				return gtbox_color.ANSIColorForegroundBrightRed + s + gtbox_color.ANSIColorReset
-			} else if style == GTLogStyleInfo {
-				return gtbox_color.ANSIColorForegroundBrightGreen + s + gtbox_color.ANSIColorReset
-			} else {
-				return gtbox_color.ANSIColorForegroundBrightCyan + s + gtbox_color.ANSIColorReset
+	if Instance().EnableSaveLogFile != true {
+		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
+		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
+		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
+			switch {
+			case strings.HasPrefix(s, "%"):
+				return gtbox_color.ANSIColorForegroundBrightYellow + s + gtbox_color.ANSIColorReset
+			case s == "[" || s == "]":
+				return s // 保持 `[` 和 `]` 的原始颜色
+			default:
+				if style == GTLogStyleError {
+					return gtbox_color.ANSIColorForegroundBrightRed + s + gtbox_color.ANSIColorReset
+				} else if style == GTLogStyleInfo {
+					return gtbox_color.ANSIColorForegroundBrightGreen + s + gtbox_color.ANSIColorReset
+				} else {
+					return gtbox_color.ANSIColorForegroundBrightCyan + s + gtbox_color.ANSIColorReset
+				}
 			}
-		}
-	})
-	//}
+		})
+	}
 
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
@@ -239,21 +236,42 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 }
 
 // SetupLogTools 初始化日志
-func SetupLogTools(productName string, enableSaveLogFile bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+func SetupLogTools(productName string, enableSaveLogFile bool, log_dir string, settingLogLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType) {
 
-	Instance().EnableSaveLogFile = enableSaveLogFile
 	Instance().ProjectName = productName
+	Instance().EnableSaveLogFile = enableSaveLogFile
+
 	Instance().LogLevel = settingLogLeve
+	switch settingLogLeve {
+	case GTLogStyleFatal:
+		logrus.SetLevel(logrus.FatalLevel)
+	case GTLogStyleTrace:
+		logrus.SetLevel(logrus.TraceLevel)
+	case GTLogStyleInfo:
+		logrus.SetLevel(logrus.InfoLevel)
+	case GTLogStyleWarning:
+		logrus.SetLevel(logrus.WarnLevel)
+	case GTLogStyleError:
+		logrus.SetLevel(logrus.ErrorLevel)
+	case GTLogStyleDebug:
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
 	Instance().LogSaveMaxDays = logMaxSaveDays
 	Instance().LogSaveFlag = logSaveType
 	//	设置Log
-	if Instance().EnableSaveLogFile == true {
 
-		if runtime.GOOS == "linux" {
-			Instance().LogPath = "/var/log/" + strings.ToLower(Instance().ProjectName) + "/run" + "_" + Instance().ProjectName
+	if Instance().EnableSaveLogFile == true {
+		if log_dir == "" {
+			if runtime.GOOS == "linux" {
+				Instance().logDir = "/var/log"
+			} else {
+				Instance().logDir = "./logs"
+			}
 		} else {
-			Instance().LogPath = "./logs/run" + "_" + Instance().ProjectName
+			Instance().logDir = log_dir
 		}
+		log_file_path := Instance().logDir + "/" + strings.ToLower(Instance().ProjectName) + "/run" + "_" + Instance().ProjectName
 		/* 日志轮转相关函数
 		   `WithLinkName` 为最新的日志建立软连接
 		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
@@ -266,10 +284,13 @@ func SetupLogTools(productName string, enableSaveLogFile bool, settingLogLeve lo
 
 		if Instance().LogSaveFlag == GTLogSaveHours {
 			logRotaionFlag = time.Hour
+		} else if Instance().LogSaveFlag == GTLogSaveTypeDays {
+			logRotaionFlag = time.Hour * 24
 		}
+
 		writer, _ := rotatelogs.New(
-			Instance().LogPath+".%Y%m%d%H%M",
-			rotatelogs.WithLinkName(Instance().LogPath),
+			log_file_path+".%Y%m%d%H%M",
+			rotatelogs.WithLinkName(log_file_path),
 			rotatelogs.WithMaxAge(time.Duration(Instance().LogSaveMaxDays)*24*time.Hour),
 			rotatelogs.WithRotationTime(logRotaionFlag),
 		)
