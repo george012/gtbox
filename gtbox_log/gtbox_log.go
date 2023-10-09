@@ -67,71 +67,28 @@ func (aFlag GTLogSaveType) String() string {
 }
 
 type GTLog struct {
-	mux sync.RWMutex
+	mux               sync.RWMutex
+	EnableSaveLogFile bool
+	ProjectName       string
+	LogLevel          logrus.Level
+	LogSaveMaxDays    int64
+	LogSaveFlag       GTLogSaveType
+	LogPath           string
 }
 
 var (
-	ALog              *GTLog
-	GTLogOnce         sync.Once
-	ProjectName       = "test"
-	LogLevel          = logrus.DebugLevel
-	LogSaveMaxDays    int64
-	LogSaveFlag       = GTLogSaveTypeDays
-	LogPath           = "./logs/run"
-	EnableSaveLogFile = false // EnableSaveLogFile	开启日志文件存储
+	currentLog *GTLog
+	gtLogOnce  sync.Once
 )
 
 // GTGetLogsDir 获取Log目录
 func GTGetLogsDir() string {
-	return LogPath
-}
-
-func (alog *GTLog) Setup() {
-
-	//	设置Log
-	if EnableSaveLogFile == true {
-
-		if runtime.GOOS == "linux" {
-			LogPath = "/var/log/" + strings.ToLower(ProjectName) + "/run" + "_" + ProjectName
-		} else {
-			LogPath = "./logs/run" + "_" + ProjectName
-		}
-		/* 日志轮转相关函数
-		   `WithLinkName` 为最新的日志建立软连接
-		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
-		   WithMaxAge 和 WithRotationCount二者只能设置一个
-		    `WithMaxAge` 设置文件清理前的最长保存时间
-		    `WithRotationCount` 设置文件清理前最多保存的个数
-		*/
-		// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
-		logRotaionFlag := time.Hour * 24
-
-		if LogSaveFlag == GTLogSaveHours {
-			logRotaionFlag = time.Hour
-		}
-		writer, _ := rotatelogs.New(
-			LogPath+".%Y%m%d%H%M",
-			rotatelogs.WithLinkName(LogPath),
-			rotatelogs.WithMaxAge(time.Duration(LogSaveMaxDays)*24*time.Hour),
-			rotatelogs.WithRotationTime(logRotaionFlag),
-		)
-		logrus.SetOutput(writer)
-	}
-}
-
-func SetupLogTools(productName string, enableSaveLogFile bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
-	ProjectName = productName
-	LogLevel = settingLogLeve
-	LogSaveMaxDays = logMaxSaveDays
-	LogSaveFlag = logSaveType
-	EnableSaveLogFile = enableSaveLogFile
-	Instance().Setup()
+	return Instance().LogPath
 }
 
 func Instance() *GTLog {
-	GTLogOnce.Do(func() {
-		ALog = &GTLog{}
-		logrus.SetLevel(LogLevel)
+	gtLogOnce.Do(func() {
+		currentLog = &GTLog{}
 		logrus.SetFormatter(&logrus.TextFormatter{
 			ForceColors:   true,
 			FullTimestamp: true,
@@ -139,7 +96,19 @@ func Instance() *GTLog {
 		// 设置默认日志输出为控制台
 		logrus.SetOutput(os.Stdout)
 	})
-	return ALog
+	return currentLog
+}
+
+func GetProjectName() string {
+	return Instance().ProjectName
+}
+
+func GetLogLevel() logrus.Level {
+	return Instance().LogLevel
+}
+
+func GetLogFilePath() string {
+	return Instance().LogPath
 }
 
 func (aLog *GTLog) infof(format string, args ...interface{}) {
@@ -216,10 +185,11 @@ func LogWarnf(format string, args ...interface{}) {
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
 func LogF(style GTLogStyle, format string, args ...interface{}) {
-
+	colorFormat := format
+	//if Instance().EnableSaveLogFile != true {
 	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
-	colorFormat := re.ReplaceAllStringFunc(format, func(s string) string {
+	colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
 		switch {
 		case strings.HasPrefix(s, "%"):
 			return gtbox_color.ANSIColorForegroundBrightYellow + s + gtbox_color.ANSIColorReset
@@ -235,6 +205,7 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 			}
 		}
 	})
+	//}
 
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(1)
@@ -264,5 +235,44 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 		Instance().errorf(colorFormat, args...)
 	case GTLogStyleDebug:
 		Instance().debugf(colorFormat, args...)
+	}
+}
+
+// SetupLogTools 初始化日志
+func SetupLogTools(productName string, enableSaveLogFile bool, settingLogLeve logrus.Level, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+
+	Instance().EnableSaveLogFile = enableSaveLogFile
+	Instance().ProjectName = productName
+	Instance().LogLevel = settingLogLeve
+	Instance().LogSaveMaxDays = logMaxSaveDays
+	Instance().LogSaveFlag = logSaveType
+	//	设置Log
+	if Instance().EnableSaveLogFile == true {
+
+		if runtime.GOOS == "linux" {
+			Instance().LogPath = "/var/log/" + strings.ToLower(Instance().ProjectName) + "/run" + "_" + Instance().ProjectName
+		} else {
+			Instance().LogPath = "./logs/run" + "_" + Instance().ProjectName
+		}
+		/* 日志轮转相关函数
+		   `WithLinkName` 为最新的日志建立软连接
+		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
+		   WithMaxAge 和 WithRotationCount二者只能设置一个
+		    `WithMaxAge` 设置文件清理前的最长保存时间
+		    `WithRotationCount` 设置文件清理前最多保存的个数
+		*/
+		// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
+		logRotaionFlag := time.Hour * 24
+
+		if Instance().LogSaveFlag == GTLogSaveHours {
+			logRotaionFlag = time.Hour
+		}
+		writer, _ := rotatelogs.New(
+			Instance().LogPath+".%Y%m%d%H%M",
+			rotatelogs.WithLinkName(Instance().LogPath),
+			rotatelogs.WithMaxAge(time.Duration(Instance().LogSaveMaxDays)*24*time.Hour),
+			rotatelogs.WithRotationTime(logRotaionFlag),
+		)
+		logrus.SetOutput(writer)
 	}
 }

@@ -80,15 +80,15 @@ func SetupGTBox(projectName string, run_mode RunMode, log_path string, logMaxSav
 	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType)
 
 	if log_path != "" {
-		gtbox_log.LogPath = log_path
+		gtbox_log.Instance().LogPath = log_path
 	}
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\n",
-		gtbox_log.ProjectName,
+		gtbox_log.GetProjectName(),
 		run_mode.String(),
-		gtbox_log.LogLevel.String(),
-		gtbox_log.LogPath,
+		gtbox_log.GetLogLevel().String(),
+		gtbox_log.GetLogFilePath(),
 		logSaveType.String(),
 		logMaxSaveDays,
 		gtbox_http.DefaultTimeout,
