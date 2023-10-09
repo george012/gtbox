@@ -147,41 +147,11 @@ func (aLog *GTLog) fatalf(format string, args ...interface{}) {
 	logrus.Fatalf(format, args...)
 }
 
-// LogInfof format格式化log--info信息
-func LogInfof(format string, args ...interface{}) {
-	LogF(GTLogStyleInfo, format, args...)
-}
-
-// LogErrorf format格式化log--error信息
-func LogErrorf(format string, args ...interface{}) {
-	LogF(GTLogStyleError, format, args...)
-}
-
-// LogDebugf format格式化log--debug信息
-func LogDebugf(format string, args ...interface{}) {
-	LogF(GTLogStyleDebug, format, args...)
-}
-
-// LogTracef format格式化log--Trace信息
-func LogTracef(format string, args ...interface{}) {
-	LogF(GTLogStyleTrace, format, args...)
-}
-
-// LogFatalf format格式化log--Fatal信息
-func LogFatalf(format string, args ...interface{}) {
-	LogF(GTLogStyleFatal, format, args...)
-}
-
-// LogWarnf format格式化log--Warning信息
-func LogWarnf(format string, args ...interface{}) {
-	LogF(GTLogStyleWarning, format, args...)
-}
-
-// LogF 快捷日志Function，含模块字段封装
+// logF 快捷日志Function，含模块字段封装
 // Params [style] log类型  fatal、trace、info、warning、error、debug
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
-func LogF(style GTLogStyle, format string, args ...interface{}) {
+func logF(style GTLogStyle, format string, args ...interface{}) {
 	colorFormat := format
 	if Instance().EnableSaveLogFile != true {
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
@@ -205,7 +175,7 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 	}
 
 	if style != GTLogStyleInfo {
-		pc, _, _, _ := runtime.Caller(1)
+		pc, _, _, _ := runtime.Caller(2)
 		fullName := runtime.FuncForPC(pc).Name()
 
 		lastDot := strings.LastIndex(fullName, ".")
@@ -233,6 +203,36 @@ func LogF(style GTLogStyle, format string, args ...interface{}) {
 	case GTLogStyleDebug:
 		Instance().debugf(colorFormat, args...)
 	}
+}
+
+// LogInfof format格式化log--info信息
+func LogInfof(format string, args ...interface{}) {
+	logF(GTLogStyleInfo, format, args...)
+}
+
+// LogErrorf format格式化log--error信息
+func LogErrorf(format string, args ...interface{}) {
+	logF(GTLogStyleError, format, args...)
+}
+
+// LogDebugf format格式化log--debug信息
+func LogDebugf(format string, args ...interface{}) {
+	logF(GTLogStyleDebug, format, args...)
+}
+
+// LogTracef format格式化log--Trace信息
+func LogTracef(format string, args ...interface{}) {
+	logF(GTLogStyleTrace, format, args...)
+}
+
+// LogFatalf format格式化log--Fatal信息
+func LogFatalf(format string, args ...interface{}) {
+	logF(GTLogStyleFatal, format, args...)
+}
+
+// LogWarnf format格式化log--Warning信息
+func LogWarnf(format string, args ...interface{}) {
+	logF(GTLogStyleWarning, format, args...)
 }
 
 // SetupLogTools 初始化日志
