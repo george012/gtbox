@@ -5,6 +5,7 @@ package gtbox
 
 import (
 	"fmt"
+	"github.com/george012/gtbox/config"
 	"github.com/george012/gtbox/gtbox_coding"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
@@ -16,7 +17,8 @@ import (
 type RunMode int
 
 const (
-	RunModeDebug RunMode = iota
+	RunModeUnknown RunMode = iota
+	RunModeDebug
 	RunModeRelease
 	RunModeTest
 )
@@ -29,8 +31,10 @@ func (rm RunMode) String() string {
 		return "Release"
 	case RunModeTest:
 		return "Test"
+	case RunModeUnknown:
+		return "Unknown"
 	default:
-		return "Debug"
+		return "Unknown"
 	}
 }
 
@@ -39,15 +43,46 @@ type GTAppSignalInfo struct {
 	Msg     string
 }
 
-// GTSysUseSignalWaitAppExit 处理程序信号,并且做一些操作，比如：保存状态、保存配置文件
-func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
-	chSig := make(chan os.Signal)
-	signal.Notify(chSig, syscall.SIGINT, syscall.SIGTERM)
-	aSignal := &GTAppSignalInfo{
-		SigCode: fmt.Sprintf("%s", <-chSig),
-		Msg:     "程序即将退出",
+var (
+	currentRunMode RunMode
+)
+
+func GetCurrentRunMode() RunMode {
+	return currentRunMode
+}
+
+// WaitAppExit 信号阻断式等待程序退出
+// test_method 在debug开启的时候
+// will_exit_method 即将推出程序时处理函数
+func WaitAppExit(test_method func(), will_exit_method func()) {
+	if config.IsSetup == false {
+		gtbox_log.LogErrorf("%s", "gtbox未初始化")
+		return
 	}
-	exitHandleFunc(aSignal)
+	if currentRunMode == RunModeDebug {
+		testMethod(test_method)
+	}
+	// 创建一个信号通道
+	chSig := make(chan os.Signal)
+	signal.Notify(chSig, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGKILL)
+
+	// 阻断主进程等待signal
+	asig := <-chSig
+	gtbox_log.LogInfof("接收到 [%s] 信号，程序即将退出! ", asig)
+	willExitHandle(will_exit_method)
+}
+
+// willExitHandle 异常退出处理
+func willExitHandle(will_exit_method func()) {
+	gtbox_log.LogInfof("[程序关闭]---[处理缓存数据] ")
+	will_exit_method()
+	// 退出
+	os.Exit(0)
+}
+
+func testMethod(test_method func()) {
+	gtbox_log.LogDebugf("\n\n%s\n\n", "测试方法")
+	test_method()
 }
 
 // SetupGTBox
@@ -64,6 +99,7 @@ func GTSysUseSignalWaitAppExit(exitHandleFunc func(sigInfo *GTAppSignalInfo)) {
 func SetupGTBox(projectName string, run_mode RunMode, log_dir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
 	enableSaveLogFile := false
 	logLevel := gtbox_log.GTLogStyleDebug
+	currentRunMode = run_mode
 	switch run_mode {
 	case RunModeDebug:
 		enableSaveLogFile = false
@@ -79,6 +115,7 @@ func SetupGTBox(projectName string, run_mode RunMode, log_dir string, logMaxSave
 	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, log_dir, logLevel, logMaxSaveDays, logSaveType)
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
+	config.IsSetup = true
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nlogpath=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\n",
 		gtbox_log.GetProjectName(),
 		run_mode.String(),
