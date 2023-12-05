@@ -1,6 +1,3 @@
-/*
-Package gtbox 工具库主入口
-*/
 package gtbox
 
 import (
