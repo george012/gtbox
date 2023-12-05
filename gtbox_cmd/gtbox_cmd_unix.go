@@ -2,11 +2,11 @@
 // +build !windows
 
 /*
-Package gtbox_encoding 编码转换"目前仅支持gbk 转utf-8"
+Package gtbox_cmd 编码转换"目前仅支持gbk 转utf-8"
 */
 package gtbox_cmd
 
-// GetGitBashPath attempts to retrieve the installation path of Git Bash from the Windows registry.
-func getWindowsGitBashPath() string {
+// GetWindowsGitBashPath 获取windows环境下的git-bash
+func GetWindowsGitBashPath() string {
 	return ""
 }

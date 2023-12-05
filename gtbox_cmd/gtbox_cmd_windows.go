@@ -2,7 +2,7 @@
 // +build windows
 
 /*
-Package gtbox_encoding 编码转换"目前仅支持gbk 转utf-8"
+Package gtbox_cmd 编码转换"目前仅支持gbk 转utf-8"
 */
 package gtbox_cmd
 
@@ -10,8 +10,8 @@ import (
 	"golang.org/x/sys/windows/registry"
 )
 
-// GetGitBashPath attempts to retrieve the installation path of Git Bash from the Windows registry.
-func getWindowsGitBashPath() string {
+// GetWindowsGitBashPath 获取windows环境下的git-bash
+func GetWindowsGitBashPath() string {
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\GitForWindows`, registry.QUERY_VALUE)
 	if err != nil {
 		return ""

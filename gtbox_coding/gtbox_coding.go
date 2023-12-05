@@ -2,6 +2,7 @@ package gtbox_coding
 
 import (
 	"fmt"
+	"github.com/george012/gtbox/gtbox_cmd"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,10 +34,29 @@ func GetProjectCodeLines() int64 {
 		}
 		currentDir = parentDir
 	}
-
+	// 路径转换适配 Windows
+	if runtime.GOOS == "windows" {
+		// 只转换驱动器字母为小写，并替换反斜杠为正斜杠
+		currentDir = "/" + strings.ToLower(string(currentDir[0])) + currentDir[2:]
+		currentDir = strings.Replace(currentDir, "\\", "/", -1)
+	}
 	// 在找到的项目根目录上运行命令统计代码行数
 	cmdStr := fmt.Sprintf("find %s -name \"*.go\" | xargs wc -l | tail -n 1 | awk '{print $1}'", currentDir)
-	cmd := exec.Command("bash", "-c", cmdStr)
+
+	var cmd *exec.Cmd
+	switch os := runtime.GOOS; os {
+	case "windows":
+		win_git_bash_path := gtbox_cmd.GetWindowsGitBashPath()
+		if win_git_bash_path == "" {
+		} else {
+			cmd = exec.Command(win_git_bash_path, "-c", cmdStr)
+		}
+	case "darwin":
+		cmd = exec.Command("/bin/zsh", "-c", cmdStr)
+	default:
+		cmd = exec.Command("/bin/bash", "-c", cmdStr)
+	}
+
 	out, err := cmd.Output()
 	if err != nil {
 		return 0

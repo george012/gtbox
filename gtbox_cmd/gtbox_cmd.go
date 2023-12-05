@@ -35,10 +35,10 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	var cmd *exec.Cmd
 	switch os := runtime.GOOS; os {
 	case "windows":
-		bit_bahs_path := getWindowsGitBashPath()
-		if bit_bahs_path == "" {
+		git_bash_path := GetWindowsGitBashPath()
+		if git_bash_path == "" {
 		} else {
-			cmd = exec.Command(bit_bahs_path, "-c", command)
+			cmd = exec.Command(git_bash_path, "-c", command)
 		}
 	case "darwin":
 		cmd = exec.Command("/bin/zsh", "-c", command)
