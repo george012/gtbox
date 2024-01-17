@@ -155,7 +155,7 @@ func HashRateFormat(hs *big.Float) string {
 		hsr = GTHashRate2Format(hs, HashRateUnitFormatHs, fSed)
 	}
 
-	return fmt.Sprintf("%s,%s", hsr.Value, hsr.UnitStr)
+	return fmt.Sprintf("%s%s", hsr.Value, hsr.UnitStr)
 }
 
 // GTHashRateFormatWithSed 哈希显示单位计算公式 以H/s 为单位传入，根据数值不同换算成进制单位PH/s、EH/s、ZH/s、YH/s等
