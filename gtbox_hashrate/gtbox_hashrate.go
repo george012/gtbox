@@ -119,6 +119,45 @@ func GTHashRateFormat(hs *big.Float) string {
 	return GTHashRateFormatWithSed(hs, 3)
 }
 
+// HashRateFormat 哈希显示单位计算公式 以H/s 为单位传入，根据数值不同换算成进制单位MH/s、GH/s等, 默认保留3位小数点
+// hs Hash算力值
+func HashRateFormat(hs *big.Float) string {
+	k := big.NewFloat(1000)
+	m := new(big.Float).Mul(k, k)
+	g := new(big.Float).Mul(m, k)
+	t := new(big.Float).Mul(g, k)
+	p := new(big.Float).Mul(t, k)
+	e := new(big.Float).Mul(p, k)
+	z := new(big.Float).Mul(e, k)
+	y := new(big.Float).Mul(z, k)
+
+	var hsr *GTHashRate
+	fSed := 3
+
+	switch {
+	case hs.Cmp(y) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatYHs, fSed)
+	case hs.Cmp(z) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatZHs, fSed)
+	case hs.Cmp(e) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatEHs, fSed)
+	case hs.Cmp(p) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatPHs, fSed)
+	case hs.Cmp(t) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatTHs, fSed)
+	case hs.Cmp(g) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatGHs, fSed)
+	case hs.Cmp(m) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatMHs, fSed)
+	case hs.Cmp(k) >= 0:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatKHs, fSed)
+	default:
+		hsr = GTHashRate2Format(hs, HashRateUnitFormatHs, fSed)
+	}
+
+	return fmt.Sprintf("%s,%s", hsr.Value, hsr.UnitStr)
+}
+
 // GTHashRateFormatWithSed 哈希显示单位计算公式 以H/s 为单位传入，根据数值不同换算成进制单位PH/s、EH/s、ZH/s、YH/s等
 // hs Hash算力值
 // fSed 此参数标识保留机位小数点
