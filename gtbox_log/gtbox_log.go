@@ -260,7 +260,7 @@ func SetupLogTools(productName string, enableSaveLogFile bool, log_dir string, s
 	Instance().LogSaveMaxDays = logMaxSaveDays
 	Instance().LogSaveFlag = logSaveType
 	//	设置Log
-
+	Instance().logDir = log_dir
 	if Instance().EnableSaveLogFile == true {
 		if log_dir == "" {
 			if runtime.GOOS == "linux" {
@@ -268,9 +268,8 @@ func SetupLogTools(productName string, enableSaveLogFile bool, log_dir string, s
 			} else {
 				Instance().logDir = "./logs"
 			}
-		} else {
-			Instance().logDir = log_dir
 		}
+
 		log_file_path := Instance().logDir + "/" + strings.ToLower(Instance().ProjectName) + "/run" + "_" + Instance().ProjectName
 		/* 日志轮转相关函数
 		   `WithLinkName` 为最新的日志建立软连接
