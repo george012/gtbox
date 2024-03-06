@@ -23,15 +23,24 @@ import "C"
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"sync"
 	"unsafe"
 )
 
+var mutex sync.Mutex
+
 // GetEncryptionLibVersion 获取加密库版本
 func GetEncryptionLibVersion() (version string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	return C.GoString(C.GT_getVerison())
 }
 
 func GTMd5(srcString string) string {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting))
 
@@ -44,6 +53,9 @@ func GTMd5(srcString string) string {
 
 // GTMD5EncryptionGo MD5加密
 func GTMD5EncryptionGo(str string) string {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	h := md5.New()
 	h.Write([]byte(str))
 	return hex.EncodeToString(h.Sum(nil))
@@ -51,6 +63,9 @@ func GTMD5EncryptionGo(str string) string {
 
 // GTEncryptionGo 自定义加密
 func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting))
 
@@ -72,6 +87,9 @@ func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
 
 // GTDecryptionGo 自定义解密
 func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting))
 
@@ -93,6 +111,9 @@ func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
 
 // GTEncryptionGoReturnStringLength 自定义加密,并返回长度
 func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resultStr string, stringLength int) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting))
 
@@ -114,6 +135,9 @@ func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resul
 
 // GTDecryptionGoWithLength 自定义解密,传入长度
 func GTDecryptionGoWithLength(srcString string, keyString string, stringLength int) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	defer C.free(unsafe.Pointer(srcCasting))
 
@@ -134,6 +158,9 @@ func GTDecryptionGoWithLength(srcString string, keyString string, stringLength i
 
 // GTEnc 加密
 func GTEnc(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))
@@ -154,6 +181,9 @@ func GTEnc(srcString string, keyString string) (resultStr string) {
 
 // GTDec 解密
 func GTDec(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))
@@ -173,6 +203,9 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 }
 
 func FatalEnc(srcString string, keyString string) string {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))
@@ -190,6 +223,9 @@ func FatalEnc(srcString string, keyString string) string {
 }
 
 func FatalDec(srcString string, keyString string) string {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
 	srcCasting := C.CString(srcString)
 	cKeyString := C.CString(keyString)
 	defer C.free(unsafe.Pointer(srcCasting))

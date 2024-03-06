@@ -8,6 +8,7 @@ gtboX is a develop tools
 - [5. v0.0.49](#5-v0049)
 - [6. v0.0.48](#6-v0048)
 - [7. v0.0.47](#7-v0047)
+- [8. v0.1.54](#8-v0154)
 
 <!-- /TOC -->
 # 1. v0.1.13
@@ -32,3 +33,8 @@ gtboX is a develop tools
 # 7. v0.0.47
 * 增加 `ChangeLog.md` 即 更新日志记录文件
 * 修改 `gtbox_hashrate` 传入`hs` 值为 `*big.FLoat`类型
+
+# 8. v0.1.54
+* 扩展 `gtbox_log` 默认单实，例扩展支持多实例，方便多扩快日志分离
+* 更新依赖版本
+* 扩展encryption并发安全锁

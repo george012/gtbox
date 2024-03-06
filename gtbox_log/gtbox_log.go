@@ -6,7 +6,7 @@ package gtbox_log
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_color"
-	"github.com/lestrrat-go/file-rotatelogs"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
 	"regexp"
@@ -14,6 +14,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+)
+
+var (
+	currentLogConfig *GTLogConf
+	logConfigOnce    sync.Once
+	setupComplate    bool
+	mainLog          *GTLog
 )
 
 // GTLogStyle 日志样式
@@ -26,6 +33,7 @@ const (
 	GTLogStyleInfo                      // Info
 	GTLogStyleTrace                     // Trace
 	GTLogStyleFatal                     // Fatal
+	GTLogStylePanic                     // Panic
 )
 
 func (aStyle GTLogStyle) String() string {
@@ -42,6 +50,8 @@ func (aStyle GTLogStyle) String() string {
 		return "error"
 	case GTLogStyleDebug:
 		return "debug"
+	case GTLogStylePanic:
+		return "panic"
 	default:
 		return "debug"
 	}
@@ -66,94 +76,51 @@ func (aFlag GTLogSaveType) String() string {
 	}
 }
 
-type GTLog struct {
-	mux               sync.RWMutex
-	EnableSaveLogFile bool
-	ProjectName       string
-	LogLevel          GTLogStyle
-	LogSaveMaxDays    int64
-	LogSaveFlag       GTLogSaveType
-	logDir            string
+type GTLogConf struct {
+	productName       string
+	productLogDir     string
+	enableSaveLogFile bool
+	logLeve           GTLogStyle
+	logMaxSaveDays    int64
+	logSaveType       GTLogSaveType
 }
 
-var (
-	currentLog *GTLog
-	gtLogOnce  sync.Once
-)
-
-func Instance() *GTLog {
-	gtLogOnce.Do(func() {
-		currentLog = &GTLog{}
-		logrus.SetFormatter(&logrus.TextFormatter{
-			ForceColors:   true,
-			FullTimestamp: true,
-		})
-
-		logrus.SetLevel(logrus.TraceLevel)
-		// 设置默认日志输出为控制台
-		logrus.SetOutput(os.Stdout)
+func InstanceConfig() *GTLogConf {
+	logConfigOnce.Do(func() {
+		currentLogConfig = &GTLogConf{}
 	})
-	return currentLog
+	return currentLogConfig
+}
+
+type GTLog struct {
+	sync.RWMutex
+	logger    *logrus.Logger // 添加这一行
+	modelName string
+	logDir    string
 }
 
 func GetProjectName() string {
-	return Instance().ProjectName
+	return InstanceConfig().productName
 }
 
 func GetLogLevel() GTLogStyle {
-	return Instance().LogLevel
+	return InstanceConfig().logLeve
 }
 
-func GetLogFilePath() string {
-	return Instance().logDir
-}
-
-func (aLog *GTLog) infof(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Infof(format, args...)
-}
-
-func (aLog *GTLog) warnf(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Warnf(format, args...)
-}
-
-func (aLog *GTLog) errorf(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Errorf(format, args...)
-}
-func (aLog *GTLog) debugf(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Debugf(format, args...)
-}
-func (aLog *GTLog) tracef(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Tracef(format, args...)
-}
-func (aLog *GTLog) fatalf(format string, args ...interface{}) {
-	aLog.mux.Lock()
-	defer aLog.mux.Unlock()
-
-	logrus.Fatalf(format, args...)
+func GetProductMainLogDir() string {
+	return InstanceConfig().productLogDir
 }
 
 // logF 快捷日志Function，含模块字段封装
 // Params [style] log类型  fatal、trace、info、warning、error、debug
 // Params [format] 模块名称：自定义字符串
 // Params [args...] 模块名称：自定义字符串
-func logF(style GTLogStyle, format string, args ...interface{}) {
+func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
+	aLog.Lock()
+	defer aLog.Unlock()
+
 	colorFormat := format
-	if Instance().EnableSaveLogFile != true {
+	if InstanceConfig().enableSaveLogFile != true {
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
 		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
@@ -191,86 +158,115 @@ func logF(style GTLogStyle, format string, args ...interface{}) {
 
 	switch style {
 	case GTLogStyleFatal:
-		Instance().fatalf(colorFormat, args...)
+		aLog.logger.Fatalf(colorFormat, args...)
 	case GTLogStyleTrace:
-		Instance().tracef(colorFormat, args...)
+		aLog.logger.Tracef(colorFormat, args...)
 	case GTLogStyleInfo:
-		Instance().infof(colorFormat, args...)
+		aLog.logger.Infof(colorFormat, args...)
 	case GTLogStyleWarning:
-		Instance().warnf(colorFormat, args...)
+		aLog.logger.Warnf(colorFormat, args...)
 	case GTLogStyleError:
-		Instance().errorf(colorFormat, args...)
+		aLog.logger.Errorf(colorFormat, args...)
 	case GTLogStyleDebug:
-		Instance().debugf(colorFormat, args...)
+		aLog.logger.Debugf(colorFormat, args...)
+	case GTLogStylePanic:
+		aLog.logger.Panicf(colorFormat, args...)
+
 	}
 }
 
 // LogInfof format格式化log--info信息
-func LogInfof(format string, args ...interface{}) {
-	logF(GTLogStyleInfo, format, args...)
+func (aLog *GTLog) LogInfof(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleInfo, format, args...)
 }
 
 // LogErrorf format格式化log--error信息
-func LogErrorf(format string, args ...interface{}) {
-	logF(GTLogStyleError, format, args...)
+func (aLog *GTLog) LogErrorf(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleError, format, args...)
 }
 
 // LogDebugf format格式化log--debug信息
-func LogDebugf(format string, args ...interface{}) {
-	logF(GTLogStyleDebug, format, args...)
+func (aLog *GTLog) LogDebugf(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleDebug, format, args...)
 }
 
 // LogTracef format格式化log--Trace信息
-func LogTracef(format string, args ...interface{}) {
-	logF(GTLogStyleTrace, format, args...)
+func (aLog *GTLog) LogTracef(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleTrace, format, args...)
 }
 
-// LogFatalf format格式化log--Fatal信息
-func LogFatalf(format string, args ...interface{}) {
-	logF(GTLogStyleFatal, format, args...)
+// LogFatalf format格式化log--Fatal信息 !!!慎用，使用后程序会退出!!!
+func (aLog *GTLog) LogFatalf(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleFatal, format, args...)
 }
 
 // LogWarnf format格式化log--Warning信息
-func LogWarnf(format string, args ...interface{}) {
-	logF(GTLogStyleWarning, format, args...)
+func (aLog *GTLog) LogWarnf(format string, args ...interface{}) {
+	aLog.logF(GTLogStyleWarning, format, args...)
 }
 
-// SetupLogTools 初始化日志
-func SetupLogTools(productName string, enableSaveLogFile bool, log_dir string, settingLogLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType) {
+// determineRotationTime 辅助函数：根据日志保存类型决定轮转时间
+func determineRotationTime(logSaveType GTLogSaveType) time.Duration {
+	switch logSaveType {
+	case GTLogSaveHours:
+		return time.Hour
+	case GTLogSaveTypeDays:
+		return time.Hour * 24
+	default:
+		return time.Hour * 24 // 默认按天轮转
+	}
+}
 
-	Instance().ProjectName = productName
-	Instance().EnableSaveLogFile = enableSaveLogFile
-
-	Instance().LogLevel = settingLogLeve
-	switch settingLogLeve {
-	case GTLogStyleFatal:
-		logrus.SetLevel(logrus.FatalLevel)
-	case GTLogStyleTrace:
-		logrus.SetLevel(logrus.TraceLevel)
-	case GTLogStyleInfo:
-		logrus.SetLevel(logrus.InfoLevel)
-	case GTLogStyleWarning:
-		logrus.SetLevel(logrus.WarnLevel)
-	case GTLogStyleError:
-		logrus.SetLevel(logrus.ErrorLevel)
-	case GTLogStyleDebug:
-		logrus.SetLevel(logrus.DebugLevel)
+// NewGTLog 添加GTLog模块
+func NewGTLog(modelName string) *GTLog {
+	if setupComplate == false {
+		fmt.Printf("must use [SetupLogTools] setup")
+		return nil
 	}
 
-	Instance().LogSaveMaxDays = logMaxSaveDays
-	Instance().LogSaveFlag = logSaveType
-	//	设置Log
-	Instance().logDir = log_dir
-	if Instance().EnableSaveLogFile == true {
-		if log_dir == "" {
-			if runtime.GOOS == "linux" {
-				Instance().logDir = "/var/log"
-			} else {
-				Instance().logDir = "./logs"
-			}
-		}
+	gtLog := &GTLog{
+		modelName: modelName,
+		logDir:    fmt.Sprintf("%s/%s", InstanceConfig().productLogDir, modelName),
+		logger:    logrus.New(),
+	}
 
-		log_file_path := Instance().logDir + "/" + strings.ToLower(Instance().ProjectName) + "/run" + "_" + Instance().ProjectName
+	// 初始化日志设置（代码简化，具体初始化逻辑可以根据需要调整）
+	gtLog.logger.SetFormatter(&logrus.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: true,
+	})
+
+	gtLog.logger.SetLevel(logrus.TraceLevel)
+
+	// 设置默认日志输出为控制台
+	gtLog.logger.SetOutput(os.Stdout)
+
+	// 根据LogLevel设置logrus的日志级别
+	switch currentLogConfig.logLeve {
+	case GTLogStyleFatal:
+		gtLog.logger.SetLevel(logrus.FatalLevel)
+	case GTLogStyleTrace:
+		gtLog.logger.SetLevel(logrus.TraceLevel)
+	case GTLogStyleInfo:
+		gtLog.logger.SetLevel(logrus.InfoLevel)
+	case GTLogStyleWarning:
+		gtLog.logger.SetLevel(logrus.WarnLevel)
+	case GTLogStyleError:
+		gtLog.logger.SetLevel(logrus.ErrorLevel)
+	case GTLogStyleDebug:
+		gtLog.logger.SetLevel(logrus.DebugLevel)
+	}
+
+	// 设置日志输出，可以根据EnableSaveLogFile和其他参数来配置
+	// （省略了日志轮转和文件输出的设置，可以直接使用SetupLogTools中相关的代码）
+	//	设置Log
+	if InstanceConfig().enableSaveLogFile == true {
+		// 确保日志目录存在
+
+		os.MkdirAll(InstanceConfig().productLogDir, 0755)
+
+		logFilePath := fmt.Sprintf("%s/%s/run", InstanceConfig().productLogDir, modelName)
+
 		/* 日志轮转相关函数
 		   `WithLinkName` 为最新的日志建立软连接
 		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
@@ -278,21 +274,74 @@ func SetupLogTools(productName string, enableSaveLogFile bool, log_dir string, s
 		    `WithMaxAge` 设置文件清理前的最长保存时间
 		    `WithRotationCount` 设置文件清理前最多保存的个数
 		*/
-		// 下面配置日志每隔 1 分钟轮转一个新文件，保留最近 3 分钟的日志文件，多余的自动清理掉。
-		logRotaionFlag := time.Hour * 24
-
-		if Instance().LogSaveFlag == GTLogSaveHours {
-			logRotaionFlag = time.Hour
-		} else if Instance().LogSaveFlag == GTLogSaveTypeDays {
-			logRotaionFlag = time.Hour * 24
-		}
-
-		writer, _ := rotatelogs.New(
-			log_file_path+".%Y%m%d%H%M",
-			rotatelogs.WithLinkName(log_file_path),
-			rotatelogs.WithMaxAge(time.Duration(Instance().LogSaveMaxDays)*24*time.Hour),
-			rotatelogs.WithRotationTime(logRotaionFlag),
+		writer, err := rotatelogs.New(
+			logFilePath+".%Y%m%d%H%M",
+			rotatelogs.WithLinkName(logFilePath),
+			rotatelogs.WithMaxAge(time.Duration(InstanceConfig().logMaxSaveDays)*24*time.Hour),
+			rotatelogs.WithRotationTime(determineRotationTime(InstanceConfig().logSaveType)),
 		)
-		logrus.SetOutput(writer)
+		if err != nil {
+			// 处理错误
+			fmt.Println("Error setting up log writer:", err)
+			return nil
+		}
+		gtLog.logger.SetOutput(writer)
+	}
+	return gtLog
+}
+
+// LogInfof format格式化log--info信息
+func LogInfof(format string, args ...interface{}) {
+	mainLog.logF(GTLogStyleInfo, format, args...)
+}
+
+// LogErrorf format格式化log--error信息
+func LogErrorf(format string, args ...interface{}) {
+	mainLog.logF(GTLogStyleError, format, args...)
+}
+
+// LogDebugf format格式化log--debug信息
+func LogDebugf(format string, args ...interface{}) {
+	mainLog.logF(GTLogStyleDebug, format, args...)
+}
+
+// LogTracef format格式化log--Trace信息
+func LogTracef(format string, args ...interface{}) {
+	mainLog.logF(GTLogStyleTrace, format, args...)
+}
+
+// LogFatalf format格式化log--Fatal信息 !!!慎用，使用后程序会退出!!!
+func LogFatalf(format string, args ...interface{}) {
+	mainLog.logF(GTLogStyleFatal, format, args...)
+}
+
+// LogWarnf format格式化log--Warning信息
+func LogWarnf(format string, args ...interface{}) {
+
+	mainLog.logF(GTLogStyleWarning, format, args...)
+}
+
+// SetupLogTools 初始化日志
+func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
+	setupComplate = false
+
+	InstanceConfig().productName = productName
+	InstanceConfig().enableSaveLogFile = enableSaveLogFile
+	InstanceConfig().logLeve = logLeve
+	InstanceConfig().logMaxSaveDays = logMaxSaveDays
+	InstanceConfig().logSaveType = logSaveType
+
+	if productLogDir == "" {
+		if runtime.GOOS == "linux" {
+			InstanceConfig().productLogDir = fmt.Sprintf("%s/%s", "/var/log", strings.ToLower(InstanceConfig().productName))
+		} else {
+			InstanceConfig().productLogDir = "./logs"
+		}
+	}
+
+	setupComplate = true
+
+	if mainLog == nil {
+		mainLog = NewGTLog(strings.ToLower(InstanceConfig().productName))
 	}
 }

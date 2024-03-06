@@ -3,7 +3,7 @@
 - [1. 使用说明](#1-使用说明)
     - [1.1. 针对windows](#11-针对windows)
 - [2. 安装、升级、卸载](#2-安装升级卸载)
-- [3. 依赖](#3-依赖)
+- [3. 更新记录](#3-更新记录)
 - [4. 二开Build](#4-二开build)
 - [5. 必要支持](#5-必要支持)
 - [6. 功能](#6-功能)
@@ -35,24 +35,8 @@
 wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/master/install_gtbox.sh && chmod a+x ./install_gtbox.sh && ./install_gtbox.sh
 ```
 
-# 3. 依赖
-```
-// scp
-go get -u github.com/bramvdbogaerde/go-scp@latest
-
-// excel
-go get -u github.com/qax-os/excelize/v2@latest
-// req 包
-go get -u github.com/imroc/req/v3@latest
-
-// gjson
-go get -u github.com/tidwall/gjson@latest
-
-// ants
-go get -u github.com/panjf2000/ants/v2@latest
-// GBK和UTF-8转换
-go get -u github.com/axgle/mahonia@latest
-```
+# 3. 更新记录
+* [ChangeList](./ChangeList.md)
 
 # 4. 二开Build
 ```
@@ -73,7 +57,7 @@ go get -u github.com/axgle/mahonia@latest
 - [x] 简单的 HTTP Client
 - [x] 简单的 ORM 封装
 - [x] Aliyun SMS 简单处理
-- [x] 日志分片
+- [x] 日志分片，
 - [x] 时间工具
 - [x] 字符串工具
 - [x] 数组工具
