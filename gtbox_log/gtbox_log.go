@@ -262,11 +262,12 @@ func NewGTLog(modelName string) *GTLog {
 	//	设置Log
 	if InstanceConfig().enableSaveLogFile == true {
 		// 确保日志目录存在
+		currentDate := time.Now().Format("2006-01-02")
+		logDirWithDate := fmt.Sprintf("%s/%s/%s", InstanceConfig().productLogDir, modelName, currentDate)
 
-		os.MkdirAll(InstanceConfig().productLogDir, 0755)
-		os.MkdirAll(fmt.Sprintf("%s/%s", InstanceConfig().productLogDir, modelName), 0755)
+		os.MkdirAll(logDirWithDate, 0755)
 
-		logFilePath := fmt.Sprintf("%s/%s/run", InstanceConfig().productLogDir, modelName)
+		logFilePath := fmt.Sprintf("%s/run", logDirWithDate)
 
 		/* 日志轮转相关函数
 		   `WithLinkName` 为最新的日志建立软连接
@@ -276,7 +277,7 @@ func NewGTLog(modelName string) *GTLog {
 		    `WithRotationCount` 设置文件清理前最多保存的个数
 		*/
 		writer, err := rotatelogs.New(
-			logFilePath+".%Y%m%d%H%M",
+			logFilePath+".%Y%m%d%H",
 			rotatelogs.WithLinkName(logFilePath),
 			rotatelogs.WithMaxAge(time.Duration(InstanceConfig().logMaxSaveDays)*24*time.Hour),
 			rotatelogs.WithRotationTime(determineRotationTime(InstanceConfig().logSaveType)),

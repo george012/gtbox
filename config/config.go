@@ -5,7 +5,7 @@ package config
 
 const (
 	ProjectName        = "gtbox"
-	ProjectVersion     = "v0.1.55"
+	ProjectVersion     = "v0.1.56"
 	ProjectDescription = "[Golang]日常开发工具箱"
 )
 
