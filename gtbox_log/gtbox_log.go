@@ -227,11 +227,6 @@ func determineRotationTime(logSaveType GTLogSaveType) time.Duration {
 
 // NewGTLog 添加GTLog模块
 func NewGTLog(modelName string) *GTLog {
-	if setupComplate == false {
-		fmt.Printf("must use [SetupLogTools] setup")
-		return nil
-	}
-
 	gtLog := &GTLog{
 		modelName: modelName,
 		logDir:    fmt.Sprintf("%s/%s", instanceConfig().productLogDir, modelName),
