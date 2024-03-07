@@ -264,6 +264,7 @@ func NewGTLog(modelName string) *GTLog {
 		// 确保日志目录存在
 
 		os.MkdirAll(InstanceConfig().productLogDir, 0755)
+		os.MkdirAll(fmt.Sprintf("%s/%s", InstanceConfig().productLogDir, modelName), 0755)
 
 		logFilePath := fmt.Sprintf("%s/%s/run", InstanceConfig().productLogDir, modelName)
 
@@ -330,6 +331,7 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 	InstanceConfig().logLeve = logLeve
 	InstanceConfig().logMaxSaveDays = logMaxSaveDays
 	InstanceConfig().logSaveType = logSaveType
+	InstanceConfig().productLogDir = productLogDir
 
 	if productLogDir == "" {
 		if runtime.GOOS == "linux" {
