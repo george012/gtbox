@@ -280,7 +280,7 @@ func NewGTLog(modelName string) *GTLog {
 		    `WithRotationCount` 设置文件清理前最多保存的个数
 		*/
 		writer, err := rotatelogs.New(
-			logFilePath+".%Y%m%d%H",
+			logFilePath+".%Y-%m-%d_%H",
 			rotatelogs.WithLinkName(logFilePath),
 			rotatelogs.WithMaxAge(time.Duration(instanceConfig().logMaxSaveDays)*24*time.Hour),
 			rotatelogs.WithRotationTime(determineRotationTime(instanceConfig().logSaveType)),
