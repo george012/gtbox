@@ -6,6 +6,7 @@ package gtbox_log
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_color"
+	"github.com/george012/gtbox/gtbox_time"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -19,8 +20,7 @@ import (
 var (
 	currentLogConfig *GTLogConf
 	logConfigOnce    sync.Once
-	defaultLogOnce   sync.Once
-	setupComplate    bool
+	setupComplete    bool
 	mainLog          *GTLog
 )
 
@@ -93,18 +93,22 @@ func instanceConfig() *GTLogConf {
 	return currentLogConfig
 }
 
-func instanceDefaultLog() *GTLog {
-	defaultLogOnce.Do(func() {
+func setupDefaultLog() *GTLog {
+	if setupComplete == false && mainLog == nil {
 		mainLog = NewGTLog(strings.ToLower(instanceConfig().productName))
-	})
+	}
 	return mainLog
 }
 
 type GTLog struct {
 	sync.RWMutex
-	logger    *logrus.Logger // 添加这一行
-	modelName string
-	logDir    string
+	logger         *logrus.Logger // 添加这一行
+	modelName      string
+	logDir         string
+	logDirWithDate string
+	entryTime      time.Time
+	lastCheckTime  time.Time // 添加一个用于记录上次检查时间的字段
+
 }
 
 func GetProjectName() string {
@@ -129,6 +133,15 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 
 	colorFormat := format
 	if instanceConfig().enableSaveLogFile != true {
+		// TODO 每分钟检查一次是否需要更新日志文件路径
+		now := time.Now().UTC()
+		if now.Sub(aLog.lastCheckTime) > time.Minute {
+			if gtbox_time.GTDateEqualYearMoonDay(aLog.entryTime, time.Now().UTC()) == false {
+				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, time.Now().UTC().Format("2006-01-02"))
+				rLog := newLogSaveHandler(aLog)
+				aLog.logger.SetOutput(rLog)
+			}
+		}
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
 		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
@@ -225,12 +238,48 @@ func determineRotationTime(logSaveType GTLogSaveType) time.Duration {
 	}
 }
 
+func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
+	// 确保日志目录存在
+	err := os.MkdirAll(gtLog.logDir, 0755)
+	if err != nil {
+		fmt.Printf("%s", err)
+		return nil
+	}
+	logFilePath := fmt.Sprintf("%s/run", gtLog.logDirWithDate)
+	linkLogFilePath := fmt.Sprintf("%s/run", gtLog.logDir)
+
+	/* 日志轮转相关函数
+	   `WithLinkName` 为最新的日志建立软连接
+	   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
+	   WithMaxAge 和 WithRotationCount二者只能设置一个
+	    `WithMaxAge` 设置文件清理前的最长保存时间
+	    `WithRotationCount` 设置文件清理前最多保存的个数
+	*/
+	writer, err := rotatelogs.New(
+		logFilePath+".%Y-%m-%d_%H",
+		rotatelogs.WithLinkName(linkLogFilePath),
+		rotatelogs.WithMaxAge(time.Duration(instanceConfig().logMaxSaveDays)*24*time.Hour),
+		rotatelogs.WithRotationTime(determineRotationTime(instanceConfig().logSaveType)),
+	)
+	if err != nil {
+		// 处理错误
+		fmt.Println("Error setting up log writer:", err)
+		return nil
+	}
+	return writer
+}
+
 // NewGTLog 添加GTLog模块
 func NewGTLog(modelName string) *GTLog {
+	currentTime := time.Now().UTC()
+
 	gtLog := &GTLog{
-		modelName: modelName,
-		logDir:    fmt.Sprintf("%s/%s", instanceConfig().productLogDir, modelName),
-		logger:    logrus.New(),
+		modelName:      modelName,
+		logDir:         fmt.Sprintf("%s/%s/%s", instanceConfig().productLogDir, modelName),
+		logDirWithDate: fmt.Sprintf("%s/%s/%s", instanceConfig().productLogDir, modelName, currentTime.Format("2006-01-02")),
+		logger:         logrus.New(),
+		entryTime:      currentTime,
+		lastCheckTime:  currentTime,
 	}
 
 	// 初始化日志设置（代码简化，具体初始化逻辑可以根据需要调整）
@@ -258,77 +307,54 @@ func NewGTLog(modelName string) *GTLog {
 		gtLog.logger.SetLevel(logrus.ErrorLevel)
 	case GTLogStyleDebug:
 		gtLog.logger.SetLevel(logrus.DebugLevel)
+	default:
+		gtLog.logger.SetLevel(logrus.InfoLevel)
 	}
 
 	// 设置日志输出，可以根据EnableSaveLogFile和其他参数来配置
 	// （省略了日志轮转和文件输出的设置，可以直接使用SetupLogTools中相关的代码）
 	//	设置Log
 	if instanceConfig().enableSaveLogFile == true {
-		// 确保日志目录存在
-		currentDate := time.Now().Format("2006-01-02")
-		logDirWithDate := fmt.Sprintf("%s/%s/%s", instanceConfig().productLogDir, modelName, currentDate)
-
-		os.MkdirAll(logDirWithDate, 0755)
-
-		logFilePath := fmt.Sprintf("%s/run", logDirWithDate)
-
-		/* 日志轮转相关函数
-		   `WithLinkName` 为最新的日志建立软连接
-		   `WithRotationTime` 设置日志分割的时间，隔多久分割一次
-		   WithMaxAge 和 WithRotationCount二者只能设置一个
-		    `WithMaxAge` 设置文件清理前的最长保存时间
-		    `WithRotationCount` 设置文件清理前最多保存的个数
-		*/
-		writer, err := rotatelogs.New(
-			logFilePath+".%Y-%m-%d_%H",
-			rotatelogs.WithLinkName(logFilePath),
-			rotatelogs.WithMaxAge(time.Duration(instanceConfig().logMaxSaveDays)*24*time.Hour),
-			rotatelogs.WithRotationTime(determineRotationTime(instanceConfig().logSaveType)),
-		)
-		if err != nil {
-			// 处理错误
-			fmt.Println("Error setting up log writer:", err)
-			return nil
-		}
-		gtLog.logger.SetOutput(writer)
+		rLog := newLogSaveHandler(gtLog)
+		gtLog.logger.SetOutput(rLog)
 	}
 	return gtLog
 }
 
 // LogInfof format格式化log--info信息
 func LogInfof(format string, args ...interface{}) {
-	instanceDefaultLog().logF(GTLogStyleInfo, format, args...)
+	setupDefaultLog().logF(GTLogStyleInfo, format, args...)
 }
 
 // LogErrorf format格式化log--error信息
 func LogErrorf(format string, args ...interface{}) {
-	instanceDefaultLog().logF(GTLogStyleError, format, args...)
+	setupDefaultLog().logF(GTLogStyleError, format, args...)
 }
 
 // LogDebugf format格式化log--debug信息
 func LogDebugf(format string, args ...interface{}) {
-	instanceDefaultLog().logF(GTLogStyleDebug, format, args...)
+	setupDefaultLog().logF(GTLogStyleDebug, format, args...)
 }
 
 // LogTracef format格式化log--Trace信息
 func LogTracef(format string, args ...interface{}) {
-	instanceDefaultLog().logF(GTLogStyleTrace, format, args...)
+	setupDefaultLog().logF(GTLogStyleTrace, format, args...)
 }
 
 // LogFatalf format格式化log--Fatal信息 !!!慎用，使用后程序会退出!!!
 func LogFatalf(format string, args ...interface{}) {
-	instanceDefaultLog().logF(GTLogStyleFatal, format, args...)
+	setupDefaultLog().logF(GTLogStyleFatal, format, args...)
 }
 
 // LogWarnf format格式化log--Warning信息
 func LogWarnf(format string, args ...interface{}) {
 
-	instanceDefaultLog().logF(GTLogStyleWarning, format, args...)
+	setupDefaultLog().logF(GTLogStyleWarning, format, args...)
 }
 
 // SetupLogTools 初始化日志
 func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
-	setupComplate = false
+	setupComplete = false
 
 	instanceConfig().productName = productName
 	instanceConfig().enableSaveLogFile = enableSaveLogFile
@@ -345,9 +371,7 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 		}
 	}
 
-	setupComplate = true
-
 	if mainLog == nil {
-		instanceDefaultLog()
+		setupDefaultLog()
 	}
 }

@@ -11,16 +11,16 @@ import (
 	"unsafe"
 )
 
-var simpleBytes []byte = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
+var simpleBytes = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
 
 // GTRandomString 获取随机字符串
-func GTRandomString(outLenth int) string {
+func GTRandomString(outLength int) string {
 	// 2. 定义一个buf，并且将buf交给bytes往buf中写数据
-	buf := make([]byte, 0, outLenth)
+	buf := make([]byte, 0, outLength)
 	b := bytes.NewBuffer(buf)
 	// 随机从中获取
-	rand.Seed(time.Now().UnixNano())
-	for rawStrLen := len(simpleBytes); outLenth > 0; outLenth-- {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	for rawStrLen := len(simpleBytes); outLength > 0; outLength-- {
 		randNum := rand.Intn(rawStrLen)
 		b.WriteByte(simpleBytes[randNum])
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestCustomLog(t *testing.T) {
-	gtbox_log.SetupLogTools("testP", false, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, "")
+	gtbox_log.SetupLogTools("testP", true, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, "")
 
 	for q := 0; q < 10; q++ {
 		gtbox_log.LogDebugf("main_test %d", q)
