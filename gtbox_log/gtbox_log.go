@@ -275,7 +275,7 @@ func NewGTLog(modelName string) *GTLog {
 
 	gtLog := &GTLog{
 		modelName:      modelName,
-		logDir:         fmt.Sprintf("%s/%s/%s", instanceConfig().productLogDir, modelName),
+		logDir:         fmt.Sprintf("%s/%s", instanceConfig().productLogDir, modelName),
 		logDirWithDate: fmt.Sprintf("%s/%s/%s", instanceConfig().productLogDir, modelName, currentTime.Format("2006-01-02")),
 		logger:         logrus.New(),
 		entryTime:      currentTime,
