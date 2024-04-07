@@ -17,10 +17,9 @@ func TestGTCmd_ExecuteCommands(t *testing.T) {
 	cmdRes := gtbox_cmd.RunWith(cmdMap)
 
 	if cmdRes != nil {
-		for cmd_key := range cmdMap {
+		for cmd_key, cmd_value := range cmdRes {
 
-			cmd_res, _ := cmdRes.Load(cmd_key)
-			fmt.Printf("[%s]---[%v] \n\n", cmd_key, cmd_res)
+			fmt.Printf("[%s]---[%v] \n\n", cmd_key, cmd_value)
 		}
 
 	}

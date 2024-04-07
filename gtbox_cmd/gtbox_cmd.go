@@ -14,13 +14,16 @@ import (
 )
 
 var rc_wg sync.WaitGroup
+var mutex sync.Mutex // 添加一个互斥锁来保护普通map
 
 type gtCmd struct {
-	results *sync.Map
+	results map[string]string
 }
 
-func RunWith(CommandMap map[string]string) *sync.Map {
-	gcmd := &gtCmd{}
+func RunWith(CommandMap map[string]string) map[string]string {
+	gcmd := &gtCmd{
+		results: make(map[string]string),
+	}
 
 	for key, command := range CommandMap {
 		rc_wg.Add(1)
@@ -62,10 +65,9 @@ func (gcmd *gtCmd) execute(key string, command string) {
 		result, _ = gtbox_encoding.ConvertToUTF8UsedLocalENV(result)
 	}
 
-	if gcmd.results == nil {
-		gcmd.results = &sync.Map{}
-	}
+	// 使用mutex保护对results map的写入
+	mutex.Lock()
 	gtbox_string.DelStringEndNewlines(&result)
-
-	gcmd.results.Store(key, result)
+	gcmd.results[key] = result
+	mutex.Unlock()
 }
