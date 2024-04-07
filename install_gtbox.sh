@@ -59,7 +59,7 @@ create_symlink() {
                 sudo ln -sf ${libPath}/${alibName}.dylib /usr/local/lib/${alibName}.dylib
                 sudo ln -sf /usr/local/lib/${alibName}.dylib /usr/local/lib/${alibName}_arm64.dylib
             else
-                ln -sf ${libPath}/${alibName}.so /lib64/${alibName}.so && ldconfig
+                sudo ln -sf ${libPath}/${alibName}.so /lib64/${alibName}.so && sudo ldconfig
             fi
             ;;
         "Windows")
