@@ -3,7 +3,7 @@ package ltc_scrypt
 /*
 #cgo CFLAGS: -I../libs/gtgo
 #cgo LDFLAGS: -L../libs/gtgo -lgtgo
-#include "scrypt.h"
+#include "gtgo.h"
 */
 import "C"
 import (
