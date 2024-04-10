@@ -18,7 +18,7 @@ extern "C"
 
     void scrypt_1024_1_1_256(const char* input, char* output);
     void scrypt_1024_1_1_256_sp(const char* input, char* output, char* scratchpad);
-    const int scrypt_scratchpad_size = 131583;
+    const int scrypt_scratchpad_size;
 #ifdef __cplusplus // 如果是 C++ 编译环境
 } // 结束 extern "C" 块
 #endif
