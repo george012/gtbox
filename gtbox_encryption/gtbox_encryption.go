@@ -203,6 +203,52 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 	return result
 }
 
+// GTEncPlus 加密Plus
+func GTEncPlus(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
+	srcCasting := C.CString(srcString)
+	cKeyString := C.CString(keyString)
+	defer C.free(unsafe.Pointer(srcCasting))
+	defer C.free(unsafe.Pointer(cKeyString))
+
+	var output *C.char
+	length := int(C.fatal_enc(srcCasting, &output, cKeyString))
+
+	if length <= 0 {
+		return "" // 或者处理错误
+	}
+
+	result := C.GoString(output)
+	C.free(unsafe.Pointer(output))
+
+	return result
+}
+
+// GTDecPlus 解密Plus
+func GTDecPlus(srcString string, keyString string) (resultStr string) {
+	mutex.Lock()         // 在函数开始处加锁
+	defer mutex.Unlock() // 确保函数退出时解锁
+
+	srcCasting := C.CString(srcString)
+	cKeyString := C.CString(keyString)
+	defer C.free(unsafe.Pointer(srcCasting))
+	defer C.free(unsafe.Pointer(cKeyString))
+
+	var output *C.char
+	length := int(C.fatal_dec(srcCasting, &output, cKeyString))
+
+	if length <= 0 {
+		return "" // 或者处理错误
+	}
+
+	result := C.GoString(output)
+	C.free(unsafe.Pointer(output))
+
+	return result
+}
+
 func FatalEnc(srcString string, keyString string) string {
 	mutex.Lock()         // 在函数开始处加锁
 	defer mutex.Unlock() // 确保函数退出时解锁

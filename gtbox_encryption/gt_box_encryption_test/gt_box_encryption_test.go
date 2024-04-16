@@ -64,6 +64,23 @@ func TestFatalFunc(t *testing.T) {
 	}
 }
 
+func TestPlusEncDec(t *testing.T) {
+	for i := 0; i < 2; i++ {
+		pre_en_str := fmt.Sprintf("%d%s%d", i, "dsfsdf", i+1)
+		en_key := "test"
+		alen := len(pre_en_str)
+		en_Str := gtbox_encryption.GTEncPlus(pre_en_str, en_key)
+
+		fmt.Printf("en_str[%s]%d\n", en_Str, alen)
+
+		de_str := gtbox_encryption.GTDecPlus(en_Str, en_key)
+		b_len := len(de_str)
+
+		fmt.Printf("de_str[%s]%d\n", de_str, b_len)
+
+	}
+}
+
 func TestGetEnLibVersion(t *testing.T) {
 	avstion := gtbox_encryption.GetEncryptionLibVersion()
 	fmt.Printf("%s", avstion)

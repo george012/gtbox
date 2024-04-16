@@ -2,29 +2,23 @@ package gtbox_string
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"github.com/axgle/mahonia"
-	"math/rand"
 	"regexp"
 	"strings"
-	"time"
 	"unsafe"
 )
 
 var simpleBytes = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890")
 
-// GTRandomString 获取随机字符串
-func GTRandomString(outLength int) string {
-	// 2. 定义一个buf，并且将buf交给bytes往buf中写数据
-	buf := make([]byte, 0, outLength)
-	b := bytes.NewBuffer(buf)
-	// 随机从中获取
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	for rawStrLen := len(simpleBytes); outLength > 0; outLength-- {
-		randNum := rand.Intn(rawStrLen)
-		b.WriteByte(simpleBytes[randNum])
-	}
-	return b.String()
+// RandomString 获取随机字符串
+// n 多少位 比如获取10位随机数即传10
+func RandomString(n int) string {
+	randBytes := make([]byte, n/2)
+	rand.Read(randBytes)
+	return fmt.Sprintf("%x", randBytes)
 }
 
 // GTCheckMobile 判断是否为手机号
@@ -107,4 +101,10 @@ func DelStringEndNewlines(s *string) {
 	b = bytes.TrimSuffix(b, []byte("\r\n"))
 	b = bytes.TrimSuffix(b, []byte("\n"))
 	*s = string(b)
+}
+
+// StringCoverBool str value is true or false  covert to golang bool type
+func StringCoverBool(str string) bool {
+
+	return str == "true"
 }
