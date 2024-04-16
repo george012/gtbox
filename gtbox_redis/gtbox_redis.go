@@ -9,7 +9,7 @@ import (
 
 var (
 	isSetup    bool
-	OwnerRedis *MbRedis
+	OwnerRedis *GTRedis
 	ctx        = context.Background()
 	prefix     string
 )
@@ -20,7 +20,7 @@ type RedisConfig struct {
 	SocketBuck int    `yaml:"socketBuck" json:"socket_buck"` // 插槽
 }
 
-type MbRedis struct {
+type GTRedis struct {
 	cfg         *RedisConfig
 	redisClient *redis.Client
 }
@@ -28,7 +28,7 @@ type MbRedis struct {
 // SetupRedisConnection 初始化Redis连接
 func SetupRedisConnection(redisCfg RedisConfig, prefixStr string) (success bool) {
 	if isSetup == false {
-		OwnerRedis = &MbRedis{
+		OwnerRedis = &GTRedis{
 			cfg: &redisCfg,
 			redisClient: redis.NewClient(&redis.Options{
 				Addr:     redisCfg.Addr,
@@ -51,34 +51,34 @@ func SetupRedisConnection(redisCfg RedisConfig, prefixStr string) (success bool)
 }
 
 // Set 插入单条数据
-func (mbr *MbRedis) Set(key string, value string) error {
+func (gtr *GTRedis) Set(key string, value string) error {
 	aKey := fmt.Sprintf("%s:%s", prefix, key)
-	err := mbr.redisClient.Set(ctx, aKey, value, 0).Err()
+	err := gtr.redisClient.Set(ctx, aKey, value, 0).Err()
 
 	return err
 }
 
 // Get 获取单条数据
-func (mbr *MbRedis) Get(key string) (string, error) {
+func (gtr *GTRedis) Get(key string) (string, error) {
 	aKey := fmt.Sprintf("%s:%s", prefix, key)
-	val, err := mbr.redisClient.Get(ctx, aKey).Result()
+	val, err := gtr.redisClient.Get(ctx, aKey).Result()
 
 	return val, err
 }
 
 // Del 删除单条数据
-func (mbr *MbRedis) Del(key string) error {
+func (gtr *GTRedis) Del(key string) error {
 	aKey := fmt.Sprintf("%s:%s", prefix, key)
 
-	err := mbr.redisClient.Del(ctx, aKey).Err()
+	err := gtr.redisClient.Del(ctx, aKey).Err()
 
 	return err
 }
 
 // Keys 删除单条数据
-func (mbr *MbRedis) Keys(key string) ([]string, error) {
+func (gtr *GTRedis) Keys(key string) ([]string, error) {
 	aKey := fmt.Sprintf("%s:%s", prefix, key)
-	val, err := mbr.redisClient.Keys(ctx, aKey).Result()
+	val, err := gtr.redisClient.Keys(ctx, aKey).Result()
 
 	return val, err
 }
