@@ -1,8 +1,6 @@
 module github.com/george012/gtbox
 
-go 1.21
-
-toolchain go1.22.2
+go 1.18
 
 require (
 	fyne.io/fyne/v2 v2.4.5
@@ -11,7 +9,7 @@ require (
 	github.com/alibabacloud-go/tea v1.2.2
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.5
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
-	github.com/bramvdbogaerde/go-scp v1.4.0
+	github.com/bramvdbogaerde/go-scp v1.3.0
 	github.com/google/uuid v1.6.0
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/redis/go-redis/v9 v9.5.1
@@ -55,7 +53,7 @@ require (
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/jonboulle/clockwork v0.3.0 // indirect
+	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jsummers/gobmp v0.0.0-20230614200233-a9de23ed2e25 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect

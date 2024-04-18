@@ -168,7 +168,7 @@ func GTEnc(srcString string, keyString string) (resultStr string) {
 	defer C.free(unsafe.Pointer(cKeyString))
 
 	var output *C.char
-	length := int(C.gt_enc(srcCasting, &output, cKeyString))
+	length := int(C.fatal_enc(srcCasting, &output, cKeyString))
 
 	if length <= 0 {
 		return "" // 或者处理错误
@@ -191,7 +191,7 @@ func GTDec(srcString string, keyString string) (resultStr string) {
 	defer C.free(unsafe.Pointer(cKeyString))
 
 	var output *C.char
-	length := int(C.gt_dec(srcCasting, &output, cKeyString))
+	length := int(C.fatal_dec(srcCasting, &output, cKeyString))
 
 	if length <= 0 {
 		return "" // 或者处理错误
@@ -214,7 +214,7 @@ func GTEncPlus(srcString string, keyString string) (resultStr string) {
 	defer C.free(unsafe.Pointer(cKeyString))
 
 	var output *C.char
-	length := int(C.fatal_enc(srcCasting, &output, cKeyString))
+	length := int(C.gt_enc(srcCasting, &output, cKeyString))
 
 	if length <= 0 {
 		return "" // 或者处理错误
@@ -237,7 +237,7 @@ func GTDecPlus(srcString string, keyString string) (resultStr string) {
 	defer C.free(unsafe.Pointer(cKeyString))
 
 	var output *C.char
-	length := int(C.fatal_dec(srcCasting, &output, cKeyString))
+	length := int(C.gt_dec(srcCasting, &output, cKeyString))
 
 	if length <= 0 {
 		return "" // 或者处理错误
