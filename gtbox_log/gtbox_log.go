@@ -106,8 +106,8 @@ type GTLog struct {
 	modelName      string
 	logDir         string
 	logDirWithDate string
-	entryTime      time.Time
-	lastCheckTime  time.Time // 添加一个用于记录上次检查时间的字段
+	entryTime      time.Time // 日志初始化时间,留作后续比对使用
+	lastCheckTime  time.Time // 记录最后一次检查时间,用作日志轮转
 
 }
 
@@ -136,11 +136,11 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 		// TODO 每分钟检查一次是否需要更新日志文件路径
 		now := time.Now().UTC()
 		if now.Sub(aLog.lastCheckTime) > time.Minute {
-			if gtbox_time.GTDateEqualYearMoonDay(aLog.entryTime, time.Now().UTC()) == false {
+			if gtbox_time.GTDateEqualYearMoonDay(aLog.lastCheckTime, time.Now().UTC()) == false {
 				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, time.Now().UTC().Format("2006-01-02"))
 				rLog := newLogSaveHandler(aLog)
 				aLog.logger.SetOutput(rLog)
-				aLog.entryTime = time.Now().UTC()
+				aLog.lastCheckTime = time.Now().UTC()
 			}
 		}
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
