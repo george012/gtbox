@@ -140,6 +140,7 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, time.Now().UTC().Format("2006-01-02"))
 				rLog := newLogSaveHandler(aLog)
 				aLog.logger.SetOutput(rLog)
+				aLog.entryTime = time.Now().UTC()
 			}
 		}
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
