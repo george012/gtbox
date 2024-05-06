@@ -136,11 +136,11 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 		// TODO 每分钟检查一次是否需要更新日志文件路径
 		now := time.Now().UTC()
 		if now.Sub(aLog.lastCheckTime) > time.Minute {
-			if gtbox_time.GTDateEqualYearMoonDay(aLog.lastCheckTime, time.Now().UTC()) == false {
-				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, time.Now().UTC().Format("2006-01-02"))
+			if gtbox_time.GTDateEqualYearMoonDay(aLog.lastCheckTime, now) == false {
+				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
 				rLog := newLogSaveHandler(aLog)
 				aLog.logger.SetOutput(rLog)
-				aLog.lastCheckTime = time.Now().UTC()
+				aLog.lastCheckTime = now
 			}
 		}
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
