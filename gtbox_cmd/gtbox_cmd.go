@@ -5,7 +5,6 @@ package gtbox_cmd
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/george012/gtbox/gtbox_encoding"
 	"github.com/george012/gtbox/gtbox_string"
 	"os/exec"
@@ -55,12 +54,12 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	cmd.Stderr = &stderr
 
 	err := cmd.Run()
-	if err != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		return
-	}
 
 	result := out.String()
+	if err != nil || cmd.Stderr != nil {
+		result = stderr.String()
+	}
+
 	if runtime.GOOS == "windows" {
 		result, _ = gtbox_encoding.ConvertToUTF8UsedLocalENV(result)
 	}
