@@ -14,6 +14,7 @@ gtboX is a develop tools
 - [11. v0.1.61](#11-v0161)
 - [12. v0.1.62](#12-v0162)
 - [13. v0.1.69](#13-v0169)
+- [14. v0.1.75](#14-v0175)
 
 <!-- /TOC -->
 # 1. v0.1.13
@@ -53,8 +54,12 @@ gtboX is a develop tools
 
 # 11. v0.1.61
 * Fix `gtbox_log` 日志分片支持文件夹按日期归集的Bug
-* 
+ 
 # 12. v0.1.62
 * Fix `gtbox_log` 修复日志路径拼接错误
+
 # 13. v0.1.69
 * Fix 新增`gtbox_redis`
+
+# 14. v0.1.75
+* Fix cmd tools error返回处理
