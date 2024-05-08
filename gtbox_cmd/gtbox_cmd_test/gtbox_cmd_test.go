@@ -12,6 +12,7 @@ func TestGTCmd_ExecuteCommands(t *testing.T) {
 		"git_commit_time": "git show -s --format=\"%ci\" | cut -d ' ' -f 1,2",
 		"build_os":        "go env GOOS",
 		"go_version":      "go version | awk '{print $3}'",
+		"check_dual_pool": "ls /etc/systemd/system | grep dual_pool.service",
 	}
 
 	cmdRes := gtbox_cmd.RunWith(cmdMap)
