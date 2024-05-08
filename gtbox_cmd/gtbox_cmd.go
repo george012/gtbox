@@ -56,7 +56,7 @@ func (gcmd *gtCmd) execute(key string, command string) {
 	err := cmd.Run()
 
 	result := out.String()
-	if err != nil || cmd.Stderr != nil {
+	if err != nil {
 		result = stderr.String()
 	}
 
