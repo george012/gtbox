@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/george012/gtbox/config"
 	"github.com/george012/gtbox/gtbox_coding"
+	"github.com/george012/gtbox/gtbox_encryption"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
 )
@@ -76,7 +77,7 @@ func SetupGTBox(projectName string, run_mode RunMode, productLogDir string, logM
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	config.IsSetup = true
-	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nproduct main logdir=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\n",
+	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nproduct main logdir=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%d Second]\ngtbox Effective lines of code=[%d]\nencryption_version=[%s]\n",
 		gtbox_log.GetProjectName(),
 		run_mode.String(),
 		gtbox_log.GetLogLevel().String(),
@@ -85,5 +86,6 @@ func SetupGTBox(projectName string, run_mode RunMode, productLogDir string, logM
 		logMaxSaveDays,
 		gtbox_http.DefaultTimeout,
 		gtbox_coding.GetProjectCodeLines(),
+		gtbox_encryption.GetEncryptionLibVersion(),
 	)
 }
