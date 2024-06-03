@@ -15,28 +15,28 @@ jobs:
   Testing:
     strategy:
       matrix:
-        goos: [ubuntu-latest, windows-latest, macos-latest]
-        goarch: [amd64, arm64]
-    runs-on: ${{ matrix.goos }}
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [amd64, arm64]
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: CheckOut
         uses: actions/checkout@v4
 
       - name: Set BUILD envs for Linux
-        if: matrix.goos == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo ln -sf ${{ github.workspace }}/libs/gtgo/*.so /usr/local/lib/ && sudo ldconfig
+          echo "LD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$LD_LIBRARY_PATH" >> ${GITHUB_ENV} \
 
       - name: Set BUILD envs for Darwin
-        if: matrix.goos == 'macos-latest'
+        if: matrix.os == 'macos-latest'
         run: |
-          sudo ln -sf ${{ github.workspace }}/libs/gtgo/*.dylib /usr/local/lib/ && sudo ldconfig
+          echo "DYLD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$DYLD_LIBRARY_PATH" >> ${GITHUB_ENV} \
 
       - name: Set BUILD envs for Windows
-        if: matrix.goos == 'windows-latest'
+        if: matrix.os == 'windows-latest'
         run: |
-          if [ "${{ matrix.goarch }}" == "amd64" ]; then
+          if [ "${{ matrix.arch }}" == "amd64" ]; then
             cmd.exe /C mklink C:\\Windows\\System32\\gtgo.dll ${{ github.workspace }}\\libs\\gtgo\\gtgo.dll
           else
             cp ${{ github.workspace }}\\libs\\gtgo\\gtgo_arm64.dll C:\\Windows\\System32\\gtgo.dll
