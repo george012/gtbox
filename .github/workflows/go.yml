@@ -36,6 +36,7 @@ jobs:
       - name: Set BUILD envs for Darwin
         if: matrix.os == 'macos-latest'
         run: |
+          ln -s ${{ github.workspace }}/libs/gtgo/libgtgo.dylib ${{ github.workspace }}/libs/gtgo/libgtgo_arm64.dylib
           echo "DYLD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$DYLD_LIBRARY_PATH" >> ${GITHUB_ENV} \
 
       - name: Set BUILD envs for Windows
