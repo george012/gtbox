@@ -52,12 +52,30 @@ jobs:
       - name: CheckOut
         uses: actions/checkout@v4
 
-      - name: Set BUILD envs
+      - name: Set BUILD envs for Linux
+        if: matrix.goos == 'linux'
         run: |
           echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
-          echo "LD_LIBRARY_PATH=$(pwd)/libs/gtgo:$LD_LIBRARY_PATH" >> ${GITHUB_ENV}
+          echo "LD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$LD_LIBRARY_PATH" >> $GITHUB_ENV
           sudo ldconfig
-          echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
+          echo BUILD_TIME=$(date) >> $GITHUB_ENV
+        shell: /usr/bin/bash -e {0}
+
+      - name: Set BUILD envs for Darwin
+        if: matrix.goos == 'darwin'
+        run: |
+          echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+          echo "DYLD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo BUILD_TIME=$(date) >> $GITHUB_ENV
+        shell: /usr/bin/bash -e {0}
+
+      - name: Set BUILD envs for Windows
+        if: matrix.goos == 'windows'
+        run: |
+          echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
+          echo "PATH=${{ github.workspace }}\\libs\\gtgo;$PATH" >> $GITHUB_ENV
+          echo BUILD_TIME=$(date) >> $GITHUB_ENV
+        shell: /usr/bin/bash -e {0}
 
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
