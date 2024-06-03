@@ -1,3 +1,6 @@
+/*
+Package gtbox_app Application 常用信息
+*/
 package gtbox_app
 
 import (

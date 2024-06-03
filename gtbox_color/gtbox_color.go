@@ -1,3 +1,6 @@
+/*
+Package gtbox_color Color 常用信息
+*/
 package gtbox_color
 
 const (

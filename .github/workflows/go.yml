@@ -122,7 +122,7 @@ jobs:
           APP_OLD_VERSION=$(get_pre_del_tag $(get_pre_del_tag $APP_VERSION))
 
           echo "Old version to remove: ${APP_OLD_VERSION}"
-          echo APP_OLD_VERSION=${APP_OLD_VERSION} >> ${GITHUB_ENV}
+#          echo APP_OLD_VERSION=${APP_OLD_VERSION} >> ${GITHUB_ENV}
 
       - name: Remove Old Release
         run: |

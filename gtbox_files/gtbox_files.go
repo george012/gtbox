@@ -23,7 +23,6 @@ func GTToolsFileWrite(filePath, content string) bool {
 }
 
 func GTToolsFileRemoveAllInDir(dirPath string) {
-	//dir, err := ioutil.ReadDir(dirPath)
 	dir, err := os.ReadDir(dirPath)
 
 	if err != nil {
