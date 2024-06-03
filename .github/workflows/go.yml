@@ -17,6 +17,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         arch: [amd64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -42,11 +45,9 @@ jobs:
       - name: Set BUILD envs for Windows
         if: matrix.os == 'windows-latest'
         run: |
-          if [ "${{ matrix.arch }}" == "amd64" ]; then
-            cmd.exe /C mklink C:\\Windows\\System32\\gtgo.dll ${{ github.workspace }}\\libs\\gtgo\\gtgo.dll
-          else
-            cp ${{ github.workspace }}\\libs\\gtgo\\gtgo_arm64.dll C:\\Windows\\System32\\gtgo.dll
-          fi
+          if ($env:arch -eq 'amd64') {
+            New-Item -ItemType SymbolicLink -Path 'C:\Windows\System32\gtgo.dll' -Target '${{ github.workspace }}\libs\gtgo\gtgo.dll'
+          }
 
       - name: do testing
         run: |
