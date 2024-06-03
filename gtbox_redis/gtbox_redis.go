@@ -1,3 +1,6 @@
+/*
+Package gtbox_redis en: Redis handle, zh-cn: Redis封装处理
+*/
 package gtbox_redis
 
 import (

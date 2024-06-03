@@ -1,3 +1,6 @@
+/*
+Package gtbox_number en: Number handle, zh-cn: 珠子类型处理
+*/
 package gtbox_number
 
 import (
@@ -7,7 +10,7 @@ import (
 	"strings"
 )
 
-// GTToolsNumberFloat64ToInt64	将float64转成精确的int64
+// GTToolsNumberFloat64ToInt64	en: float64 covert to int64, zh-cn: float64 转 int64
 func GTToolsNumberFloat64ToInt64(num float64, retain int) int64 {
 	return int64(num * math.Pow10(retain))
 }
