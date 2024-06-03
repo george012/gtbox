@@ -12,12 +12,15 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  Testing:
     runs-on: ubuntu-latest
-    outputs:
-      UPLOAD_URL: ${{ steps.stepCreateRelease.outputs.upload_url }}
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+
     steps:
-      - name: Checkout code
+      - name: CheckOut
         uses: actions/checkout@v4
 
       - name: Set BUILD envs for Linux
@@ -39,9 +42,21 @@ jobs:
             cp ${{ github.workspace }}/libs/gtgo/gtgo_arm64.dll c/Windows/System32/gtgo.dll
           fi
 
-      - name: GO Testing
+      - name: Environment Printer
+        uses: managedkaos/print-env@v1.0
+
+      - name: do testing
         run: |
           go test
+
+  Release:
+    runs-on: ubuntu-latest
+    needs: Testing
+    outputs:
+      UPLOAD_URL: ${{ steps.stepCreateRelease.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Get latest tag
         run: |
@@ -65,7 +80,7 @@ jobs:
 
   RemoveOldRelease:
     runs-on: ubuntu-latest
-    needs: release
+    needs: Release
     steps:
       - name: install github-cli
         run: |
