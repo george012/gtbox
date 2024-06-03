@@ -13,7 +13,6 @@ on:
 
 jobs:
   Testing:
-  testing:
     strategy:
       matrix:
         goos: [ubuntu-latest, windows-latest, macos-latest]
