@@ -71,11 +71,11 @@ jobs:
         run: |
           echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
           echo BUILD_TIME=$(date) >> $GITHUB_ENV
-          echo "PATH=${{ github.workspace }}\\libs\\gtgo;$PATH" >> $GITHUB_ENV
-          for file in ${{ github.workspace }}\\libs\\gtgo\\*.dll; do
-            echo "Copying $file to C:\\Windows\\System32"
-            cp $file C:\\Windows\\System32
-          done
+          if [ "${{ matrix.goarch }}" == "amd64" ]; then
+            ln -sf ${{ github.workspace }}/libs/gtgo/gtgo.dll c/Windows/System32/gtgo.dll
+          else
+            cp ${{ github.workspace }}/libs/gtgo/gtgo_arm64.dll c/Windows/System32/gtgo.dll
+          fi
 
       - name: Environment Printer
         uses: managedkaos/print-env@v1.0
