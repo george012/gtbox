@@ -13,11 +13,12 @@ on:
 
 jobs:
   Testing:
-    runs-on: ubuntu-latest
+  testing:
     strategy:
       matrix:
-        goos: [linux, windows, darwin]
+        goos: [ubuntu-latest, windows-latest, macos-latest]
         goarch: [amd64, arm64]
+    runs-on: ${{ matrix.goos }}
 
     steps:
       - name: CheckOut
