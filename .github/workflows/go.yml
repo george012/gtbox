@@ -24,26 +24,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set BUILD envs for Linux
-        if: matrix.goos == 'linux'
+        if: matrix.goos == 'ubuntu-latest'
         run: |
           sudo ln -sf ${{ github.workspace }}/libs/gtgo/*.so /usr/local/lib/ && sudo ldconfig
 
       - name: Set BUILD envs for Darwin
-        if: matrix.goos == 'darwin'
+        if: matrix.goos == 'macos-latest'
         run: |
           sudo ln -sf ${{ github.workspace }}/libs/gtgo/*.dylib /usr/local/lib/ && sudo ldconfig
 
       - name: Set BUILD envs for Windows
-        if: matrix.goos == 'windows'
+        if: matrix.goos == 'windows-latest'
         run: |
           if [ "${{ matrix.goarch }}" == "amd64" ]; then
-            ln -sf ${{ github.workspace }}/libs/gtgo/gtgo.dll c/Windows/System32/gtgo.dll
+            cmd.exe /C mklink C:\\Windows\\System32\\gtgo.dll ${{ github.workspace }}\\libs\\gtgo\\gtgo.dll
           else
-            cp ${{ github.workspace }}/libs/gtgo/gtgo_arm64.dll c/Windows/System32/gtgo.dll
+            cp ${{ github.workspace }}\\libs\\gtgo\\gtgo_arm64.dll C:\\Windows\\System32\\gtgo.dll
           fi
-
-      - name: Environment Printer
-        uses: managedkaos/print-env@v1.0
 
       - name: do testing
         run: |
