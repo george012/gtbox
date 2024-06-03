@@ -1,3 +1,6 @@
+/*
+Package gtbox_string 字符串处理
+*/
 package gtbox_string
 
 import (
