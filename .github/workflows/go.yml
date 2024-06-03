@@ -46,7 +46,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash
         run: |
-          cp ${{ github.workspace }}/libs/gtgo/gtgo.dll /c/Windows/System32/gtgo.dll
+          cp ./libs/gtgo/gtgo.dll /c/Windows/System32/gtgo.dll
 
       - name: do testing
         shell: bash
