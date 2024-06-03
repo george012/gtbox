@@ -23,6 +23,11 @@ jobs:
       - name: CheckOut
         uses: actions/checkout@v4
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '>=1.18.0'
+
       - name: Set BUILD envs for Linux
         if: matrix.os == 'ubuntu-latest'
         run: |
