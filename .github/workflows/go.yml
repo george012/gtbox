@@ -44,12 +44,12 @@ jobs:
 
       - name: Set BUILD envs for Windows
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
-          if ($env:arch -eq 'amd64') {
-            New-Item -ItemType SymbolicLink -Path 'C:\Windows\System32\gtgo.dll' -Target '${{ github.workspace }}\libs\gtgo\gtgo.dll'
-          }
+          ln -s ${{ github.workspace }}/libs/gtgo/gtgo.dll c/Windows/System32/gtgo.dll
 
       - name: do testing
+        shell: bash
         run: |
           go test
 
