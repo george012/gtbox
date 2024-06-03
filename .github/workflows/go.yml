@@ -56,7 +56,7 @@ jobs:
         run: |
           echo APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) >> ${GITHUB_ENV}
           echo "LD_LIBRARY_PATH=$(pwd)/libs/gtgo:$LD_LIBRARY_PATH" >> ${GITHUB_ENV}
-          ldconfig
+          sudo ldconfig
           echo BUILD_TIME=$(date) >> ${GITHUB_ENV}
 
       - name: Environment Printer
