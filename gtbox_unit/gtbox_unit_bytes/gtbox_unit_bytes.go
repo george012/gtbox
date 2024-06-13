@@ -1,7 +1,6 @@
 package gtbox_unit_bytes
 
 import (
-	"github.com/george012/gtbox/gtbox_unit/gtbox_unit_bit"
 	"math/big"
 )
 
@@ -48,49 +47,4 @@ func (aBytes UnitBytes) String() string {
 type GTUnitBytes struct {
 	BytesValue *big.Float // 字节值
 	Unit       UnitBytes  // 单位
-}
-
-// Covert2Bit 以2进制计算方式 将 Byte (字节)  换算成 Bit(比特)
-func (aBytes *GTUnitBytes) Covert2Bit() *gtbox_unit_bit.GTUnitBit {
-	// 初始字节值
-	bytes := aBytes.BytesValue
-	returnBit := &gtbox_unit_bit.GTUnitBit{}
-
-	// 将字节转换为比特
-	bytes.Mul(bytes, big.NewFloat(8))
-
-	// 根据字节的单位进行相应的换算
-	switch aBytes.Unit {
-	case UnitBytesByte: // Byte
-		returnBit.Unit = gtbox_unit_bit.UnitBitsBit
-	case UnitBytesKiloBytes: // KiloBytes
-		bytes.Mul(bytes, big.NewFloat(1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsKiloBit
-	case UnitBytesMegaBytes: // MegaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsMegaBit
-	case UnitBytesGigaBytes: // GigaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsGigaBit
-	case UnitBytesTeraBytes: // TeraBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsTeraBit
-	case UnitBytesPetaBytes: // PetaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsPetaBit
-	case UnitBytesExaBytes: // ExaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsExaBit
-	case UnitBytesZettaBytes: // ZettaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsZettaBit
-	case UnitBytesYottaBytes: // YottaBytes
-		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024*1024*1024))
-		returnBit.Unit = gtbox_unit_bit.UnitBitsYottaBit
-	}
-
-	// 设定比特值
-	returnBit.BitValue = bytes
-
-	return returnBit
 }

@@ -9,7 +9,7 @@ import (
 func TestCustomLog(t *testing.T) {
 	gtbox_log.SetupLogTools("testP", false, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, "")
 
-	for q := 0; q < 10; q++ {
+	for q := 0; q < 3; q++ {
 		gtbox_log.LogDebugf("main_test %d", q)
 		gtbox_log.LogInfof("main_test %d", q)
 		gtbox_log.LogWarnf("main_test %d", q)
@@ -17,9 +17,9 @@ func TestCustomLog(t *testing.T) {
 		gtbox_log.LogErrorf("main_test %d", q)
 	}
 
-	for i := 0; i < 4; i++ {
+	for i := 0; i < 3; i++ {
 		a_loger := gtbox_log.NewGTLog(fmt.Sprintf("at_%d", i))
-		for j := 0; j < 5; j++ {
+		for j := 0; j < 3; j++ {
 			a_loger.LogDebugf("at_ %d", j)
 			a_loger.LogInfof("at_ %d", j)
 			a_loger.LogWarnf("at_ %d", j)

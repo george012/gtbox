@@ -30,7 +30,8 @@ func (aSMS *GTBoxSMS) SetupSMSConfigWithAli(accessKeyId string, accessKeySecret 
 	}
 }
 
-/**
+// GTCreateClient
+/*
  * 使用AK&SK初始化账号Client
  * @param accessKeyId
  * @param accessKeySecret

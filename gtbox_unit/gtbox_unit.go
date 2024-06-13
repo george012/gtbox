@@ -7,7 +7,20 @@ import (
 	"math/big"
 )
 
-// UnitBits Bit 比特 显示单位 Model
+// UnitType
+/*
+* Bit 比特 显示单位 Model
+ * @enum UnitTypeNone	不做转换
+ * @enum UnitTypeAuto 自动根据位数换算单位
+ * @enum UnitTypeKilo Kilo 千
+ * @enum UnitTypeMega Mega 兆
+ * @enum UnitTypeGiga Giga 吉
+ * @enum UnitTypeTera Tera 太
+ * @enum UnitTypePeta Peta 拍
+ * @enum UnitTypeExa Exa 艾
+ * @enum UnitTypeZetta Zetta 泽
+ * @enum UnitTypeYotta Yotta 尧
+*/
 type UnitType int
 
 const (
@@ -56,6 +69,96 @@ type GTUnit struct {
 	BytesInfo *gtbox_unit_bytes.GTUnitBytes
 }
 
+// UnitBitCovertToUnitBytes 以2进制计算方式 将 Bit(比特) 换算成 Byte (字节)
+func UnitBitCovertToUnitBytes(aBit *gtbox_unit_bit.GTUnitBit) *gtbox_unit_bytes.GTUnitBytes {
+	// 初始比特值
+	bits := aBit.BitValue
+	returnBytes := &gtbox_unit_bytes.GTUnitBytes{}
+
+	// 根据比特的单位进行相应的换算
+	switch aBit.Unit {
+	case gtbox_unit_bit.UnitBitsBit:
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesByte
+	case gtbox_unit_bit.UnitBitsKiloBit: // Kilobit
+		bits.Mul(bits, big.NewFloat(1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesKiloBytes
+	case gtbox_unit_bit.UnitBitsMegaBit: // Megabit
+		bits.Mul(bits, big.NewFloat(1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesMegaBytes
+	case gtbox_unit_bit.UnitBitsGigaBit: // Gigabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesGigaBytes
+	case gtbox_unit_bit.UnitBitsTeraBit: // Terabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesTeraBytes
+	case gtbox_unit_bit.UnitBitsPetaBit: // Petabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesPetaBytes
+	case gtbox_unit_bit.UnitBitsExaBit: // Exabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024*1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesExaBytes
+	case gtbox_unit_bit.UnitBitsZettaBit: // Zettabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024*1024*1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesZettaBytes
+	case gtbox_unit_bit.UnitBitsYottaBit: // Yottabit
+		bits.Mul(bits, big.NewFloat(1024*1024*1024*1024*1024*1024*1024*1024))
+		returnBytes.Unit = gtbox_unit_bytes.UnitBytesYottaBytes
+	}
+
+	// 将比特转换为字节
+	bits.Quo(bits, big.NewFloat(8))
+
+	// 设定字节值
+	returnBytes.BytesValue = bits
+
+	return returnBytes
+}
+
+// UnitBytesCovertToUnitBit 以2进制计算方式 将 Byte (字节)  换算成 Bit(比特)
+func UnitBytesCovertToUnitBit(aBytes *gtbox_unit_bytes.GTUnitBytes) *gtbox_unit_bit.GTUnitBit {
+	// 初始字节值
+	bytes := aBytes.BytesValue
+	returnBit := &gtbox_unit_bit.GTUnitBit{}
+
+	// 将字节转换为比特
+	bytes.Mul(bytes, big.NewFloat(8))
+
+	// 根据字节的单位进行相应的换算
+	switch aBytes.Unit {
+	case gtbox_unit_bytes.UnitBytesByte: // Byte
+		returnBit.Unit = gtbox_unit_bit.UnitBitsBit
+	case gtbox_unit_bytes.UnitBytesKiloBytes: // KiloBytes
+		bytes.Mul(bytes, big.NewFloat(1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsKiloBit
+	case gtbox_unit_bytes.UnitBytesMegaBytes: // MegaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsMegaBit
+	case gtbox_unit_bytes.UnitBytesGigaBytes: // GigaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsGigaBit
+	case gtbox_unit_bytes.UnitBytesTeraBytes: // TeraBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsTeraBit
+	case gtbox_unit_bytes.UnitBytesPetaBytes: // PetaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsPetaBit
+	case gtbox_unit_bytes.UnitBytesExaBytes: // ExaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsExaBit
+	case gtbox_unit_bytes.UnitBytesZettaBytes: // ZettaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsZettaBit
+	case gtbox_unit_bytes.UnitBytesYottaBytes: // YottaBytes
+		bytes.Mul(bytes, big.NewFloat(1024*1024*1024*1024*1024*1024*1024*1024))
+		returnBit.Unit = gtbox_unit_bit.UnitBitsYottaBit
+	}
+
+	// 设定比特值
+	returnBit.BitValue = bytes
+
+	return returnBit
+}
+
 // NewWithBitFormat 通过 bit(比特) 创建 Model
 // bitString bit单位的 bit值
 // resultUnitType 返回值的单位 默认不做处理，推荐自动格式化
@@ -95,7 +198,7 @@ func NewWithBitFormat(bitString string, resultUnitType UnitType) *GTUnit {
 		abitInfo.Unit = unitType
 	}
 
-	abytesInfo := abitInfo.Covert2Bytes()
+	abytesInfo := UnitBitCovertToUnitBytes(abitInfo)
 
 	return &GTUnit{
 		abitInfo,
@@ -141,7 +244,7 @@ func NewWithBytesFormat(BytesString string, resultUnitType UnitType) *GTUnit {
 		aBytes.Unit = unitType
 	}
 
-	aBits := aBytes.Covert2Bit()
+	aBits := UnitBytesCovertToUnitBit(aBytes)
 
 	return &GTUnit{
 		aBits,
