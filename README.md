@@ -13,6 +13,7 @@
 
 # 1. 使用说明
 * <font color=red>只保留2个可运行版本，方便维护</font>
+* <font color=red>尝试改动态库为静态库</font>
 * 必须安装了`git`
 * 项目必须用`go mod`自动管理依赖
 * 必须：`go version` `>=` `1.18`
