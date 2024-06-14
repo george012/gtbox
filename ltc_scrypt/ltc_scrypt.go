@@ -1,8 +1,6 @@
 package ltc_scrypt
 
 /*
-#cgo CFLAGS: -I../libs/gtgo
-#cgo LDFLAGS: -L../libs/gtgo -lgtgo
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -12,6 +10,7 @@ extern void scrypt_1024_1_1_256_sp(const char* input, char* output, char* scratc
 extern const int scrypt_scratchpad_size;
 */
 import "C"
+
 import (
 	"encoding/hex"
 	"unsafe"

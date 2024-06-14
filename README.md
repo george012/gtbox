@@ -16,6 +16,7 @@
 * 必须安装了`git`
 * 项目必须用`go mod`自动管理依赖
 * 必须：`go version` `>=` `1.18`
+* 关于测试 `go test -v -run ./...`
 
 ## 1.1. 针对windows
 * Windows 开启administrator权限

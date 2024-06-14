@@ -31,27 +31,10 @@ jobs:
         with:
           go-version: '>=1.18.0'
 
-      - name: Set BUILD envs for Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          echo "LD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$LD_LIBRARY_PATH" >> ${GITHUB_ENV} \
-
-      - name: Set BUILD envs for Darwin
-        if: matrix.os == 'macos-latest'
-        run: |
-          ln -s ${{ github.workspace }}/libs/gtgo/libgtgo.dylib ${{ github.workspace }}/libs/gtgo/libgtgo_arm64.dylib
-          echo "DYLD_LIBRARY_PATH=${{ github.workspace }}/libs/gtgo:$DYLD_LIBRARY_PATH" >> ${GITHUB_ENV} \
-
-      - name: Set BUILD envs for Windows
-        if: matrix.os == 'windows-latest'
-        shell: bash
-        run: |
-          cp ./libs/gtgo/gtgo.dll /c/Windows/System32/gtgo.dll
-
       - name: do testing
         shell: bash
         run: |
-          go test
+          go test -v -run ./...
 
   Release:
     runs-on: ubuntu-latest

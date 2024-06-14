@@ -15,7 +15,7 @@ func TestCalcScryptHash(t *testing.T) {
 	for i := 0; i < len(b1h); i++ {
 		b1r[i] = b1h[len(b1h)-i-1]
 	}
-	fmt.Println("b1r: ", hex.EncodeToString(b1r))
+	fmt.Printf("b1r: %s", hex.EncodeToString(b1r))
 }
 
 func TestCalcScryptHashHex(t *testing.T) {
@@ -27,5 +27,5 @@ func TestCalcScryptHashHex(t *testing.T) {
 	for i := 0; i < len(b1h); i++ {
 		b1r[i] = b1h[len(b1h)-i-1]
 	}
-	fmt.Println("b1r: ", hex.EncodeToString(b1r))
+	fmt.Printf("b1r: %s", hex.EncodeToString(b1r))
 }

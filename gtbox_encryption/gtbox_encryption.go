@@ -4,8 +4,6 @@ Package gtbox_encryption 加密库
 package gtbox_encryption
 
 /*
-#cgo CFLAGS: -I../libs/gtgo
-#cgo LDFLAGS: -L../libs/gtgo -lgtgo
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
