@@ -55,7 +55,7 @@ require (
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/xuri/efp v0.0.0-20240408161823-9ad904a10d6d // indirect
 	github.com/xuri/nfp v0.0.0-20240318013403-ab9948c2c4a7 // indirect
-	golang.org/x/image v0.16.0 // indirect
+	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
