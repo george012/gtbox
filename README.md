@@ -1,13 +1,13 @@
 <!-- TOC -->
 
 - [1. 使用说明](#1-使用说明)
-    - [1.1. 针对windows](#11-针对windows)
-- [2. 安装、升级、卸载](#2-安装升级卸载)
+    - [1.1. 关于测试](#11-关于测试)
+- [2. 使用](#2-使用)
+    - [2.1. 静态库版本](#21-静态库版本)
+    - [2.2. 动态库版本---停止维护](#22-动态库版本---停止维护)
 - [3. 更新记录](#3-更新记录)
-- [4. 二开Build](#4-二开build)
-- [5. 必要支持](#5-必要支持)
-- [6. 功能](#6-功能)
-- [7. 删除所有本地和远端 tag](#7-删除所有本地和远端-tag)
+- [4. 必要支持](#4-必要支持)
+- [5. 功能](#5-功能)
 
 <!-- /TOC -->
 
@@ -17,21 +17,16 @@
 * 必须安装了`git`
 * 项目必须用`go mod`自动管理依赖
 * 必须：`go version` `>=` `1.18`
-* 关于测试 `go test -v -run ./...`
 
-## 1.1. 针对windows
-* Windows 开启administrator权限
-* IDE 全局用户安装
-* 如果目前已经是单用户安装 在`IDE` →`属性` → `兼容性`中设置`以管理员的身份启用`
-* 内置 git config 强制 `LF`
-* 强制 `LF` 设置
-    ```
-    git config --global core.autocrlf input
-    
-    git config --global core.safecrlf true
-    ```
+## 1.1. 关于测试 
+* `go test -v -run ./...`
 
-# 2. 安装、升级、卸载
+# 2. 使用
+## 2.1. 静态库版本
+```
+go get -u github.com/george012/gtbox@latest
+```
+## 2.2. 动态库版本---停止维护
 * <font color=red>在任意`golang`项目根目录下使用`terminal`执行如下命令</font>
 ```
 wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/master/install_gtbox.sh && chmod a+x ./install_gtbox.sh && ./install_gtbox.sh
@@ -40,18 +35,12 @@ wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/ma
 # 3. 更新记录
 * [ChangeList](./ChangeList.md)
 
-# 4. 二开Build
-```
-./build 
-```
-*   自动化打包、提交、打Tag、并删除提交冗余Tags
-
-# 5. 必要支持
+# 4. 必要支持
 *   CGO支持
 *   MAC安装最新版本Xcode及Command Line Tools
 
 
-# 6. 功能
+# 5. 功能
 - [x] CGO支持
 - [x] 自定义加、解密
 - [x] 简单的 SSH Client
@@ -69,8 +58,3 @@ wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/ma
 - [ ] 跨平台GUI工具---Fyne
 - [ ] 跨平台GUI工具---Wails
 
-
-# 7. 删除所有本地和远端 tag
-```
-git push origin --delete $(git tag -l) && git tag -d $(git tag -l)
-```
