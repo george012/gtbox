@@ -110,3 +110,13 @@ func GTGetTodayCustomHoursAndMinuteWithBeijing(aHours int, aMinute int) time.Tim
 
 	return time.Date(aNow.Year(), aNow.Month(), aNow.Day(), aHours, aMinute, 0, 0, beijingLoc)
 }
+
+// NowUTC --[☑]--Required
+/*
+	en: get utc format now time;
+	zh-CN: 获取UTC 当前时间;
+	@return [☑] en:  ;zh-CN: UTC 时间;
+*/
+func NowUTC() time.Time {
+	return time.Now().UTC()
+}
