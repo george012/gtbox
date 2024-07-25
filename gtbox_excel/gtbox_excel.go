@@ -9,9 +9,9 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-// GTToolDataExcelCreateExcelFile
+// CreateExcelFile
 // tableTitle := map[string]string{
-func GTToolDataExcelCreateExcelFile(dir_path string, file_name string, tableTitle map[string]string) {
+func CreateExcelFile(dir_path string, file_name string, tableTitle map[string]string) {
 	gtbox_files.GTCheckDirisNoneToCreate(dir_path)
 	f := excelize.NewFile()
 	// 创建一个工作表
@@ -26,7 +26,8 @@ func GTToolDataExcelCreateExcelFile(dir_path string, file_name string, tableTitl
 		fmt.Println(err)
 	}
 }
-func GTToolDataExcelAppenData(dir_path string, file_name string, valuesMap map[string]string) {
+
+func AppendData(dir_path string, file_name string, valuesMap map[string]string) {
 	excleFile, erra := excelize.OpenFile(dir_path + "/" + file_name + ".xlsx")
 	if erra != nil {
 		return
