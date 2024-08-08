@@ -52,8 +52,10 @@ func (gtr *GTRedis) HKeys(key string) ([]string, error) {
 
 // ScanSameLevelKeys 使用 SCAN 命令查找同级的键
 func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
+	aKey := fmt.Sprintf("%s:%s", prefix, key)
+
 	// 分割 key，并使用最后一个部分的通配符进行模式匹配
-	parts := strings.Split(key, ":")
+	parts := strings.Split(aKey, ":")
 	if len(parts) == 0 {
 		return nil, fmt.Errorf("invalid key format")
 	}
