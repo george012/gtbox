@@ -2,6 +2,7 @@ package gtbox_redis
 
 import (
 	"fmt"
+	"strings"
 )
 
 func (gtr *GTRedis) HGetAll(key string) (map[string]string, error) {
@@ -46,5 +47,42 @@ func (gtr *GTRedis) HKeys(key string) ([]string, error) {
 	aKey := fmt.Sprintf("%s:%s", prefix, key)
 	val, err := gtr.redisClient.HKeys(ctx, aKey).Result()
 
+	return val, err
+}
+
+// ScanSameLevelKeys 使用 SCAN 命令查找同级的键
+func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
+	// 分割 key，并使用最后一个部分的通配符进行模式匹配
+	parts := strings.Split(key, ":")
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("invalid key format")
+	}
+	// 替换最后一个部分为通配符
+	parts[len(parts)-1] = "*"
+	pattern := strings.Join(parts, ":")
+	var cursor uint64
+	var keys []string
+
+	// 循环使用 SCAN 命令查找所有匹配的键
+	for {
+		scanKeys, newCursor, err := gtr.redisClient.Scan(ctx, cursor, pattern, 0).Result()
+		if err != nil {
+			return nil, err
+		}
+
+		keys = append(keys, scanKeys...)
+		cursor = newCursor
+
+		if cursor == 0 {
+			break
+		}
+	}
+
+	return keys, nil
+}
+
+func (gtr *GTRedis) HScan(key string, cursor uint64, match string, count int64) ([]string, error) {
+	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	val, _, err := gtr.redisClient.HScan(ctx, aKey, cursor, match, count).Result()
 	return val, err
 }
