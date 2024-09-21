@@ -6,7 +6,6 @@ package gtbox_log
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_color"
-	"github.com/george012/gtbox/gtbox_time"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -102,12 +101,13 @@ func setupDefaultLog() *GTLog {
 
 type GTLog struct {
 	sync.RWMutex
-	logger         *logrus.Logger // 添加这一行
-	modelName      string
-	logDir         string
-	logDirWithDate string
-	entryTime      time.Time // 日志初始化时间,留作后续比对使用
-	lastCheckTime  time.Time // 记录最后一次检查时间,用作日志轮转
+	saveFileEnabled bool
+	logger          *logrus.Logger // 添加这一行
+	modelName       string
+	logDir          string
+	logDirWithDate  string
+	entryTime       time.Time // 日志初始化时间,留作后续比对使用
+	lastCheckTime   time.Time // 记录最后一次检查时间,用作日志轮转
 
 }
 
@@ -132,36 +132,25 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 	defer aLog.Unlock()
 
 	colorFormat := format
-	if instanceConfig().enableSaveLogFile != true {
-		// TODO 每分钟检查一次是否需要更新日志文件路径
-		now := time.Now().UTC()
-		if now.Sub(aLog.lastCheckTime) > time.Minute {
-			if gtbox_time.GTDateEqualYearMoonDay(aLog.lastCheckTime, now) == false {
-				aLog.logDirWithDate = fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
-				rLog := newLogSaveHandler(aLog)
-				aLog.logger.SetOutput(rLog)
-				aLog.lastCheckTime = now
+
+	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
+	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
+	colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
+		switch {
+		case strings.HasPrefix(s, "%"):
+			return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightYellow, s, gtbox_color.ANSIColorReset)
+		case s == "[" || s == "]":
+			return s // 保持 `[` 和 `]` 的原始颜色
+		default:
+			if style == GTLogStyleError {
+				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightRed, s, gtbox_color.ANSIColorReset)
+			} else if style == GTLogStyleInfo {
+				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightGreen, s, gtbox_color.ANSIColorReset)
+			} else {
+				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightCyan, s, gtbox_color.ANSIColorReset)
 			}
 		}
-		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
-		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
-		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
-			switch {
-			case strings.HasPrefix(s, "%"):
-				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightYellow, s, gtbox_color.ANSIColorReset)
-			case s == "[" || s == "]":
-				return s // 保持 `[` 和 `]` 的原始颜色
-			default:
-				if style == GTLogStyleError {
-					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightRed, s, gtbox_color.ANSIColorReset)
-				} else if style == GTLogStyleInfo {
-					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightGreen, s, gtbox_color.ANSIColorReset)
-				} else {
-					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightCyan, s, gtbox_color.ANSIColorReset)
-				}
-			}
-		})
-	}
+	})
 
 	if style != GTLogStyleInfo {
 		pc, _, _, _ := runtime.Caller(2)
@@ -291,9 +280,6 @@ func NewGTLog(modelName string) *GTLog {
 
 	gtLog.logger.SetLevel(logrus.TraceLevel)
 
-	// 设置默认日志输出为控制台
-	gtLog.logger.SetOutput(os.Stdout)
-
 	// 根据LogLevel设置logrus的日志级别
 	switch currentLogConfig.logLeve {
 	case GTLogStyleFatal:
@@ -312,6 +298,11 @@ func NewGTLog(modelName string) *GTLog {
 		gtLog.logger.SetLevel(logrus.InfoLevel)
 	}
 
+	gtLog.saveFileEnabled = instanceConfig().enableSaveLogFile
+
+	// 设置默认日志输出为控制台
+	gtLog.logger.SetOutput(os.Stdout)
+
 	// 设置日志输出，可以根据EnableSaveLogFile和其他参数来配置
 	// （省略了日志轮转和文件输出的设置，可以直接使用SetupLogTools中相关的代码）
 	//	设置Log
@@ -319,6 +310,15 @@ func NewGTLog(modelName string) *GTLog {
 		rLog := newLogSaveHandler(gtLog)
 		gtLog.logger.SetOutput(rLog)
 	}
+
+	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
+	gtLog.startLogMaintenance(func(done chan struct{}) {
+		// 在这里执行首次操作，比如检查日志目录和初始化逻辑
+		fmt.Println("First run checks completed")
+		// 通知首次任务完成
+		close(done)
+	})
+
 	return gtLog
 }
 
