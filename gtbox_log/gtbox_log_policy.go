@@ -56,7 +56,7 @@ func (aLog *GTLog) cleanOldLogs() {
 
 	dirs, err := os.ReadDir(aLog.logDir)
 	if err != nil {
-		fmt.Printf("Error reading log directory: %s\n", err)
+		aLog.logF(GTLogStyleError, "Error reading log directory: %s\n", err)
 		return
 	}
 
@@ -86,9 +86,9 @@ func (aLog *GTLog) cleanOldLogs() {
 		if now.Sub(dirDate) > maxAge {
 			err := os.RemoveAll(dirPath)
 			if err != nil {
-				fmt.Printf("Error removing directory: %s, error: %v\n", dirPath, err)
+				aLog.logF(GTLogStyleError, "Error removing directory: %s, error: %v\n", dirPath, err)
 			} else {
-				fmt.Printf("Deleted old log directory: %s\n", dirPath)
+				aLog.logF(GTLogStyleInfo, "Deleted old log directory: %s\n", dirPath)
 			}
 		}
 	}

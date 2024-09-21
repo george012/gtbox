@@ -1,9 +1,11 @@
 package gtbox
 
 import (
+	"github.com/george012/gtbox/gtbox_common"
 	"github.com/george012/gtbox/gtbox_encryption"
 	"github.com/george012/gtbox/gtbox_log"
 	"github.com/george012/gtbox/gtbox_time"
+	"runtime"
 	"testing"
 )
 
@@ -51,4 +53,11 @@ func TestGTBoxFunctions(t *testing.T) {
 	TimeToolsTest(t)
 
 	EncryptionToolsTest(t)
+}
+
+func TestOther(t *testing.T) {
+	dir := gtbox_common.GetBinaryRunAsDir()
+	_, dir, _, _ = runtime.Caller(0)
+
+	gtbox_log.LogDebugf("%s", dir)
 }

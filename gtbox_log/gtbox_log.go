@@ -6,6 +6,7 @@ package gtbox_log
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_color"
+	"github.com/george012/gtbox/gtbox_common"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -314,7 +315,7 @@ func NewGTLog(modelName string) *GTLog {
 	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
 	gtLog.startLogMaintenance(func(done chan struct{}) {
 		// 在这里执行首次操作，比如检查日志目录和初始化逻辑
-		fmt.Println("First run checks completed")
+		gtLog.LogInfof("[%s] log policy started\n", gtLog.modelName)
 		// 通知首次任务完成
 		close(done)
 	})
@@ -368,7 +369,12 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 		if runtime.GOOS == "linux" {
 			instanceConfig().productLogDir = fmt.Sprintf("%s/%s", "/var/log", strings.ToLower(instanceConfig().productName))
 		} else {
-			instanceConfig().productLogDir = "./logs"
+			// 如果当前程序运行在临时目录中
+			if gtbox_common.IsRunningFromTemp() == true {
+				instanceConfig().productLogDir = fmt.Sprintf("%s/logs", gtbox_common.GetFileRunAsDir())
+			} else {
+				instanceConfig().productLogDir = "./logs"
+			}
 		}
 	}
 
