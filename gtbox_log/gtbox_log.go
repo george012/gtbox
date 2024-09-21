@@ -6,7 +6,6 @@ package gtbox_log
 import (
 	"fmt"
 	"github.com/george012/gtbox/gtbox_color"
-	"github.com/george012/gtbox/gtbox_common"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -369,12 +368,7 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 		if runtime.GOOS == "linux" {
 			instanceConfig().productLogDir = fmt.Sprintf("%s/%s", "/var/log", strings.ToLower(instanceConfig().productName))
 		} else {
-			// 如果当前程序运行在临时目录中
-			if gtbox_common.IsRunningFromTemp() == true {
-				instanceConfig().productLogDir = fmt.Sprintf("%s/logs", gtbox_common.GetFileRunAsDir())
-			} else {
-				instanceConfig().productLogDir = "./logs"
-			}
+			instanceConfig().productLogDir = "./logs"
 		}
 	}
 
