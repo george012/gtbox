@@ -48,7 +48,7 @@ wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/ma
 - [x] 简单的 HTTP Client
 - [x] 简单的 ORM 封装
 - [x] Aliyun SMS 简单处理
-- [x] 日志分片，
+- [x] 日志分片(异步日志文件管理)，
 - [x] 时间工具
 - [x] 字符串工具
 - [x] 数组工具
