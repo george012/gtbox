@@ -32,6 +32,18 @@ go get -u github.com/george012/gtbox@latest
 wget --no-check-certificate https://raw.githubusercontent.com/george012/gtbox/master/install_gtbox.sh && chmod a+x ./install_gtbox.sh && ./install_gtbox.sh
 ```
 
+## 2.3. mac 编译 linux
+```
+brew install filosottile/musl-cross/musl-cross
+
+设置如下环境变量 到 ~/.bash_profile 或者 ~/.zshrc
+# Musl-cross 环境
+export MUSL_CROSS_ROOT=$(brew --prefix musl-cross)
+export PATH=$MUSL_CROSS_ROOT/bin:$PATH
+
+
+```
+
 # 3. 更新记录
 * [ChangeList](./ChangeList.md)
 
