@@ -65,62 +65,62 @@ jobs:
           tag: ${{ env.LATEST_TAG }}
           name: ${{ env.LATEST_TAG }}
 
-#  RemoveOldRelease:
-#    runs-on: ubuntu-latest
-#    needs: Release
-#    steps:
-#      - name: install github-cli
-#        run: |
-#          type -p curl >/dev/null || sudo apt install curl -y
-#          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-#          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-#          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-#          && sudo apt update \
-#          && sudo apt install gh -y
-#
-#      - name: CheckOut
-#        uses: actions/checkout@v4
-#
-#      - name: Set APP_VERSION env
-#        run: |
-#          APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) \
-#
-#          function get_pre_del_tag {
-#              local v_str=$1
-#              baseStr=$(echo $v_str | cut -d'.' -f1)
-#              base=${baseStr//v/}
-#              major=$(echo $v_str | cut -d'.' -f2)
-#              minor=$(echo $v_str | cut -d'.' -f3)
-#
-#              if ((minor>0)); then
-#                  minor=$((minor-1))
-#              else
-#                  minor=999
-#                  if ((major>0)); then
-#                      major=$((major-1))
-#                  else
-#                      major=999
-#                      if ((base>0)); then
-#                          base=$((base-1))
-#                      else
-#                          echo "Error: Version cannot be decremented."
-#                          exit 1
-#                      fi
-#                  fi
-#              fi
-#
-#              pre_v_no="v${base}.${major}.${minor}"
-#              echo $pre_v_no
-#          }
-#
-#          APP_OLD_VERSION=$(get_pre_del_tag $(get_pre_del_tag $APP_VERSION))
-#
-#          echo "Old version to remove: ${APP_OLD_VERSION}"
-#          echo APP_OLD_VERSION=${APP_OLD_VERSION} >> ${GITHUB_ENV}
-#
-#      - name: Remove Old Release
-#        run: |
-#          gh release delete ${{ env.APP_OLD_VERSION }} -y
-#          git push origin --delete ${{ env.APP_OLD_VERSION }}
-#        env:
-#          GH_TOKEN: ${{ github.token }}
+  RemoveOldRelease:
+    runs-on: ubuntu-latest
+    needs: Release
+    steps:
+      - name: install github-cli
+        run: |
+          type -p curl >/dev/null || sudo apt install curl -y
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && sudo apt update \
+          && sudo apt install gh -y
+
+      - name: CheckOut
+        uses: actions/checkout@v4
+
+      - name: Set APP_VERSION env
+        run: |
+          APP_VERSION=$(echo ${GITHUB_REF} | rev | cut -d'/' -f 1 | rev ) \
+
+          function get_pre_del_tag {
+              local v_str=$1
+              baseStr=$(echo $v_str | cut -d'.' -f1)
+              base=${baseStr//v/}
+              major=$(echo $v_str | cut -d'.' -f2)
+              minor=$(echo $v_str | cut -d'.' -f3)
+
+              if ((minor>0)); then
+                  minor=$((minor-1))
+              else
+                  minor=999
+                  if ((major>0)); then
+                      major=$((major-1))
+                  else
+                      major=999
+                      if ((base>0)); then
+                          base=$((base-1))
+                      else
+                          echo "Error: Version cannot be decremented."
+                          exit 1
+                      fi
+                  fi
+              fi
+
+              pre_v_no="v${base}.${major}.${minor}"
+              echo $pre_v_no
+          }
+
+          APP_OLD_VERSION=$(get_pre_del_tag $(get_pre_del_tag $APP_VERSION))
+
+          echo "Old version to remove: ${APP_OLD_VERSION}"
+          echo APP_OLD_VERSION=${APP_OLD_VERSION} >> ${GITHUB_ENV}
+
+      - name: Remove Old Release
+        run: |
+          gh release delete ${{ env.APP_OLD_VERSION }} -y
+          git push origin --delete ${{ env.APP_OLD_VERSION }}
+        env:
+          GH_TOKEN: ${{ github.token }}

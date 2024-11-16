@@ -7,6 +7,7 @@ import (
 	"github.com/george012/gtbox/gtbox_encryption"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
+	"time"
 )
 
 type RunMode int
@@ -57,7 +58,7 @@ func GetCurrentRunMode() RunMode {
 	@params [☑]logSaveType en:  ;zh-CN: 日志存储类型：按天切片|按小时切片 GTLogSaveTypeDays | GTLogSaveHours;
 	@params [☑]httpRequestTimeOut en:  ;zh-CN: 网络请求超时时间;
 */
-func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut int) {
+func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut time.Duration) {
 	enableSaveLogFile := false
 	logLevel := gtbox_log.GTLogStyleDebug
 	currentRunMode = runMode

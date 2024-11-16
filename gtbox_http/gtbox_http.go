@@ -14,7 +14,7 @@ import (
 
 var (
 	UserAgent      = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-	DefaultTimeout = 20 // default second
+	DefaultTimeout = 30 * time.Second // default second 30s
 )
 
 // HttpClient 是一个高并发的 HTTP 客户端封装
@@ -25,10 +25,10 @@ type HttpClient struct {
 }
 
 // NewHttpClient 返回一个新的 HttpClient 对象
-func NewHttpClient(timeout int) *HttpClient {
+func NewHttpClient(timeout time.Duration) *HttpClient {
 	return &HttpClient{
 		Client: &http.Client{
-			Timeout: time.Duration(timeout) * time.Second,
+			Timeout: timeout,
 		},
 	}
 }
@@ -58,7 +58,7 @@ func (hc *HttpClient) Get(url string) ([]byte, error) {
 }
 
 // GetWithTimeOut Get请求,timeout 超时时间
-func GetWithTimeOut(url string, timeout int, endFunc func(respData []byte, err error)) {
+func GetWithTimeOut(url string, timeout time.Duration, endFunc func(respData []byte, err error)) {
 	customClient := NewHttpClient(timeout)
 	resp, err := customClient.Get(url)
 	endFunc(resp, err)
@@ -72,7 +72,7 @@ func Get(url string, endFunc func(respData []byte, err error)) {
 }
 
 // PostWithTimeOut Post请求,timeout 超时时间
-func PostWithTimeOut(url string, timeout int, data []byte, endFunc func(respData []byte, err error)) {
+func PostWithTimeOut(url string, timeout time.Duration, data []byte, endFunc func(respData []byte, err error)) {
 	customClient := NewHttpClient(timeout)
 	resp, err := customClient.Post(url, "", "", data)
 	endFunc(resp, err)
