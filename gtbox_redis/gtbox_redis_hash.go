@@ -88,3 +88,9 @@ func (gtr *GTRedis) HScan(key string, cursor uint64, match string, count int64) 
 	val, _, err := gtr.redisClient.HScan(ctx, aKey, cursor, match, count).Result()
 	return val, err
 }
+
+func (gtr *GTRedis) HLen(key string) (int64, error) {
+	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	val, err := gtr.redisClient.HLen(ctx, aKey).Result()
+	return val, err
+}
