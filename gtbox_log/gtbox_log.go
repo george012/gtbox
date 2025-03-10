@@ -314,6 +314,8 @@ func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 	if instanceConfig().enableSaveLogFile == true {
 		rLog := newLogSaveHandler(gtLog)
 		gtLog.logger.SetOutput(rLog)
+		// 关闭标准输出
+		os.Stdout, _ = os.Open(os.DevNull)
 	}
 
 	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
