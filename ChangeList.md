@@ -75,3 +75,6 @@ gtboX is a develop tools
 
 # 17. v0.1.93
 * 升级`golang.org/x/image`，从`0.16.0`->`0.18.0`
+* 
+# 17. v0.1.104
+* 增加 `gtbox_log` 自定义颜色 开关

@@ -83,6 +83,7 @@ type GTLogConf struct {
 	logLeve           GTLogStyle
 	logMaxSaveDays    int64
 	logSaveType       GTLogSaveType
+	logColorEnabled   bool
 }
 
 func instanceConfig() *GTLogConf {
@@ -94,7 +95,10 @@ func instanceConfig() *GTLogConf {
 
 func setupDefaultLog() *GTLog {
 	if setupComplete == false && mainLog == nil {
-		mainLog = NewGTLog(strings.ToLower(instanceConfig().productName))
+		mainLog = NewGTLog(
+			strings.ToLower(instanceConfig().productName),
+			instanceConfig().logColorEnabled,
+		)
 	}
 	return mainLog
 }
@@ -108,7 +112,7 @@ type GTLog struct {
 	logDirWithDate  string
 	entryTime       time.Time // 日志初始化时间,留作后续比对使用
 	lastCheckTime   time.Time // 记录最后一次检查时间,用作日志轮转
-
+	colorEnabled    bool
 }
 
 func GetProjectName() string {
@@ -132,39 +136,40 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 	defer aLog.Unlock()
 
 	colorFormat := format
-
-	// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
-	re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
-	colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
-		switch {
-		case strings.HasPrefix(s, "%"):
-			return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightYellow, s, gtbox_color.ANSIColorReset)
-		case s == "[" || s == "]":
-			return s // 保持 `[` 和 `]` 的原始颜色
-		default:
-			if style == GTLogStyleError {
-				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightRed, s, gtbox_color.ANSIColorReset)
-			} else if style == GTLogStyleInfo {
-				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightGreen, s, gtbox_color.ANSIColorReset)
-			} else {
-				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightCyan, s, gtbox_color.ANSIColorReset)
+	if aLog.colorEnabled == true {
+		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
+		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
+		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
+			switch {
+			case strings.HasPrefix(s, "%"):
+				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightYellow, s, gtbox_color.ANSIColorReset)
+			case s == "[" || s == "]":
+				return s // 保持 `[` 和 `]` 的原始颜色
+			default:
+				if style == GTLogStyleError {
+					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightRed, s, gtbox_color.ANSIColorReset)
+				} else if style == GTLogStyleInfo {
+					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightGreen, s, gtbox_color.ANSIColorReset)
+				} else {
+					return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightCyan, s, gtbox_color.ANSIColorReset)
+				}
 			}
+		})
+
+		if style != GTLogStyleInfo {
+			pc, _, _, _ := runtime.Caller(2)
+			fullName := runtime.FuncForPC(pc).Name()
+
+			lastDot := strings.LastIndex(fullName, ".")
+			if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+				return
+			}
+			callerClass := fullName[:lastDot]
+			method := fullName[lastDot+1:]
+
+			prefixFormat := fmt.Sprintf("[pkg--%s--][method--%s--] ", callerClass, method)
+			colorFormat = prefixFormat + colorFormat
 		}
-	})
-
-	if style != GTLogStyleInfo {
-		pc, _, _, _ := runtime.Caller(2)
-		fullName := runtime.FuncForPC(pc).Name()
-
-		lastDot := strings.LastIndex(fullName, ".")
-		if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-			return
-		}
-		callerClass := fullName[:lastDot]
-		method := fullName[lastDot+1:]
-
-		prefixFormat := fmt.Sprintf("[pkg--%s--][method--%s--] ", callerClass, method)
-		colorFormat = prefixFormat + colorFormat
 	}
 
 	switch style {
@@ -182,7 +187,6 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 		aLog.logger.Debugf(colorFormat, args...)
 	case GTLogStylePanic:
 		aLog.logger.Panicf(colorFormat, args...)
-
 	}
 }
 
@@ -260,7 +264,7 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 }
 
 // NewGTLog 添加GTLog模块
-func NewGTLog(modelName string) *GTLog {
+func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 	currentTime := time.Now().UTC()
 
 	gtLog := &GTLog{
@@ -270,6 +274,7 @@ func NewGTLog(modelName string) *GTLog {
 		logger:         logrus.New(),
 		entryTime:      currentTime,
 		lastCheckTime:  currentTime,
+		colorEnabled:   colorEnabled,
 	}
 
 	// 初始化日志设置（代码简化，具体初始化逻辑可以根据需要调整）
@@ -354,7 +359,7 @@ func LogWarnf(format string, args ...interface{}) {
 }
 
 // SetupLogTools 初始化日志
-func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
+func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string, logColorEnabled bool) {
 	setupComplete = false
 
 	instanceConfig().productName = productName
@@ -363,6 +368,7 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 	instanceConfig().logMaxSaveDays = logMaxSaveDays
 	instanceConfig().logSaveType = logSaveType
 	instanceConfig().productLogDir = productLogDir
+	instanceConfig().logColorEnabled = logColorEnabled
 
 	if productLogDir == "" {
 		if runtime.GOOS == "linux" {
