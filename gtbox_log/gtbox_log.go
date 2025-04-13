@@ -279,8 +279,9 @@ func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 
 	// 初始化日志设置（代码简化，具体初始化逻辑可以根据需要调整）
 	gtLog.logger.SetFormatter(&logrus.TextFormatter{
-		ForceColors:   true,
-		FullTimestamp: true,
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: "2006-01-02 15:04:05Z07:00",
 	})
 
 	gtLog.logger.SetLevel(logrus.TraceLevel)
