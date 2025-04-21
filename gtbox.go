@@ -81,7 +81,7 @@ func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMa
 	fmt.Printf("gtbox Tools Setup End\nProjcetName=[%s]\nrunMode=[%s]\nlogLeve=[%s]\nproduct main logdir=[%s]\nlogCutType=[%s]\nlogSaveDays=[%d]\nhttpRequestTimeout=[%.2f Second]\ngtbox Effective lines of code=[%d]\nencryption_version=[%s]\n",
 		gtbox_log.GetProjectName(),
 		runMode.String(),
-		gtbox_log.GetLogLevel().String(),
+		gtbox_log.GetLogLevel(),
 		gtbox_log.GetProductMainLogDir(),
 		logSaveType.String(),
 		logMaxSaveDays,

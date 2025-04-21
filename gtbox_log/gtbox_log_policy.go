@@ -44,6 +44,7 @@ func (aLog *GTLog) checkAndUpdateLogDir() {
 	if aLog.logDirWithDate != newLogDirWithDate {
 		aLog.logDirWithDate = newLogDirWithDate
 		rLog := newLogSaveHandler(aLog)
+		aLog.colorEnabled = false
 		aLog.logger.SetOutput(rLog)
 		aLog.lastCheckTime = now
 	}

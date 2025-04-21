@@ -24,38 +24,17 @@ var (
 )
 
 // GTLogStyle 日志样式
-type GTLogStyle int
+type GTLogStyle string
 
 const (
-	GTLogStyleDebug   GTLogStyle = iota // Debug
-	GTLogStyleError                     // Error
-	GTLogStyleWarning                   // Warning
-	GTLogStyleInfo                      // Info
-	GTLogStyleTrace                     // Trace
-	GTLogStyleFatal                     // Fatal
-	GTLogStylePanic                     // Panic
+	GTLogStyleDebug   GTLogStyle = "debug"   // Debug
+	GTLogStyleError   GTLogStyle = "error"   // Error
+	GTLogStyleWarning GTLogStyle = "warning" // Warning
+	GTLogStyleInfo    GTLogStyle = "info"    // Info
+	GTLogStyleTrace   GTLogStyle = "trace"   // Trace
+	GTLogStyleFatal   GTLogStyle = "fatal"   // Fatal
+	GTLogStylePanic   GTLogStyle = "panic"   // Panic
 )
-
-func (aStyle GTLogStyle) String() string {
-	switch aStyle {
-	case GTLogStyleFatal:
-		return "fatal"
-	case GTLogStyleTrace:
-		return "trace"
-	case GTLogStyleInfo:
-		return "info"
-	case GTLogStyleWarning:
-		return "warning"
-	case GTLogStyleError:
-		return "error"
-	case GTLogStyleDebug:
-		return "debug"
-	case GTLogStylePanic:
-		return "panic"
-	default:
-		return "debug"
-	}
-}
 
 // GTLogSaveType 日志分片类型
 type GTLogSaveType int
@@ -155,21 +134,21 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 				}
 			}
 		})
+	}
 
-		if style != GTLogStyleInfo {
-			pc, _, _, _ := runtime.Caller(2)
-			fullName := runtime.FuncForPC(pc).Name()
+	if style != GTLogStyleInfo {
+		pc, _, _, _ := runtime.Caller(2)
+		fullName := runtime.FuncForPC(pc).Name()
 
-			lastDot := strings.LastIndex(fullName, ".")
-			if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
-				return
-			}
-			callerClass := fullName[:lastDot]
-			method := fullName[lastDot+1:]
-
-			prefixFormat := fmt.Sprintf("[pkg--%s--][method--%s--] ", callerClass, method)
-			colorFormat = prefixFormat + colorFormat
+		lastDot := strings.LastIndex(fullName, ".")
+		if lastDot == -1 || lastDot == 0 || lastDot == len(fullName)-1 {
+			return
 		}
+		callerClass := fullName[:lastDot]
+		method := fullName[lastDot+1:]
+
+		prefixFormat := fmt.Sprintf("[pkg--%s--][method--%s--] ", callerClass, method)
+		colorFormat = prefixFormat + colorFormat
 	}
 
 	switch style {
@@ -240,7 +219,7 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 		return nil
 	}
 	logFilePath := fmt.Sprintf("%s/run", gtLog.logDirWithDate)
-	linkLogFilePath := fmt.Sprintf("%s/run", gtLog.logDir)
+	linkLogFilePath := fmt.Sprintf("%s/run.log", gtLog.logDir)
 
 	/* 日志轮转相关函数
 	   `WithLinkName` 为最新的日志建立软连接
@@ -250,7 +229,7 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 	    `WithRotationCount` 设置文件清理前最多保存的个数
 	*/
 	writer, err := rotatelogs.New(
-		logFilePath+".%Y-%m-%d_%H",
+		logFilePath+".%Y-%m-%d_%H.log",
 		rotatelogs.WithLinkName(linkLogFilePath),
 		rotatelogs.WithMaxAge(time.Duration(instanceConfig().logMaxSaveDays)*24*time.Hour),
 		rotatelogs.WithRotationTime(determineRotationTime(instanceConfig().logSaveType)),
@@ -314,6 +293,7 @@ func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 	//	设置Log
 	if instanceConfig().enableSaveLogFile == true {
 		rLog := newLogSaveHandler(gtLog)
+		gtLog.colorEnabled = false
 		gtLog.logger.SetOutput(rLog)
 	}
 
