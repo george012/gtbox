@@ -58,7 +58,7 @@ func GetCurrentRunMode() RunMode {
 	@params [☑]logSaveType en:  ;zh-CN: 日志存储类型：按天切片|按小时切片 GTLogSaveTypeDays | GTLogSaveHours;
 	@params [☑]httpRequestTimeOut en:  ;zh-CN: 网络请求超时时间;
 */
-func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut time.Duration, logColorEnabled bool) {
+func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut time.Duration) {
 	enableSaveLogFile := false
 	logLevel := gtbox_log.GTLogStyleDebug
 	currentRunMode = runMode
@@ -74,7 +74,7 @@ func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMa
 		logLevel = gtbox_log.GTLogStyleInfo
 	}
 
-	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType, productLogDir, logColorEnabled)
+	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType, productLogDir)
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	config.IsSetup = true

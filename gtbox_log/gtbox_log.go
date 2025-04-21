@@ -62,7 +62,6 @@ type GTLogConf struct {
 	logLeve           GTLogStyle
 	logMaxSaveDays    int64
 	logSaveType       GTLogSaveType
-	logColorEnabled   bool
 }
 
 func instanceConfig() *GTLogConf {
@@ -76,7 +75,6 @@ func setupDefaultLog() *GTLog {
 	if setupComplete == false && mainLog == nil {
 		mainLog = NewGTLog(
 			strings.ToLower(instanceConfig().productName),
-			instanceConfig().logColorEnabled,
 		)
 	}
 	return mainLog
@@ -91,7 +89,6 @@ type GTLog struct {
 	logDirWithDate  string
 	entryTime       time.Time // 日志初始化时间,留作后续比对使用
 	lastCheckTime   time.Time // 记录最后一次检查时间,用作日志轮转
-	colorEnabled    bool
 }
 
 func GetProjectName() string {
@@ -115,7 +112,7 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 	defer aLog.Unlock()
 
 	colorFormat := format
-	if aLog.colorEnabled == true {
+	if aLog.saveFileEnabled == false {
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
 		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
@@ -243,7 +240,7 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 }
 
 // NewGTLog 添加GTLog模块
-func NewGTLog(modelName string, colorEnabled bool) *GTLog {
+func NewGTLog(modelName string) *GTLog {
 	currentTime := time.Now().UTC()
 
 	gtLog := &GTLog{
@@ -253,7 +250,6 @@ func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 		logger:         logrus.New(),
 		entryTime:      currentTime,
 		lastCheckTime:  currentTime,
-		colorEnabled:   colorEnabled,
 	}
 
 	// 初始化日志设置（代码简化，具体初始化逻辑可以根据需要调整）
@@ -293,7 +289,6 @@ func NewGTLog(modelName string, colorEnabled bool) *GTLog {
 	//	设置Log
 	if instanceConfig().enableSaveLogFile == true {
 		rLog := newLogSaveHandler(gtLog)
-		gtLog.colorEnabled = false
 		gtLog.logger.SetOutput(rLog)
 	}
 
@@ -340,7 +335,7 @@ func LogWarnf(format string, args ...interface{}) {
 }
 
 // SetupLogTools 初始化日志
-func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string, logColorEnabled bool) {
+func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
 	setupComplete = false
 
 	instanceConfig().productName = productName
@@ -349,7 +344,6 @@ func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyl
 	instanceConfig().logMaxSaveDays = logMaxSaveDays
 	instanceConfig().logSaveType = logSaveType
 	instanceConfig().productLogDir = productLogDir
-	instanceConfig().logColorEnabled = logColorEnabled
 
 	if productLogDir == "" {
 		if runtime.GOOS == "linux" {
