@@ -2,8 +2,6 @@ module github.com/george012/gtbox
 
 go 1.23.0
 
-toolchain go1.24.2
-
 require (
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/bramvdbogaerde/go-scp v1.5.0
