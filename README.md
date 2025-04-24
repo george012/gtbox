@@ -5,9 +5,11 @@
 - [2. 使用](#2-使用)
     - [2.1. 静态库版本](#21-静态库版本)
     - [2.2. 动态库版本---停止维护](#22-动态库版本---停止维护)
+    - [2.3. mac 编译 linux](#23-mac-编译-linux)
 - [3. 更新记录](#3-更新记录)
 - [4. 必要支持](#4-必要支持)
 - [5. 功能](#5-功能)
+- [6. 感谢](#6-感谢)
 
 <!-- /TOC -->
 
@@ -68,3 +70,7 @@ export PATH=$MUSL_CROSS_ROOT/bin:$PATH
 - [x] 超高精度Float64加、减、乘、除运算
 - [x] Bit  Bytes 单位换算工具
 
+# 6. 感谢
+`gtbox`收到了 [Jetbrains](https://jb.gg/OpenSourceSupport) Licenses，非常感谢`Jetbrains`对开源项目的支持。
+
+![JetBrains logo](./resource/img/jetBrains.svg)
