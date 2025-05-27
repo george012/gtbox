@@ -16,7 +16,7 @@ const (
 	UnitBytesPetaBytes                   // PB or PBytes 拍字节
 	UnitBytesExaBytes                    // EB or EBytes 艾字节
 	UnitBytesZettaBytes                  // ZB or ZBytes 泽字节
-	UnitBytesYottaBytes                  // YB or YBytes 尧字
+	UnitBytesYottaBytes                  // YB or YBytes 尧字节
 )
 
 func (aBytes UnitBytes) String() string {
