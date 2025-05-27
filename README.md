@@ -55,21 +55,23 @@ export PATH=$MUSL_CROSS_ROOT/bin:$PATH
 
 
 # 5. 功能
-- [x] CGO支持
-- [x] 自定义加、解密
-- [x] 简单的 SSH Client
-- [x] 简易 SCP 工具
-- [x] 简单的 HTTP Client
-- [x] 简单的 ORM 封装
-- [x] Aliyun SMS 简单处理
-- [x] 日志分片(异步日志文件管理)，
-- [x] 时间工具
-- [x] 字符串工具
-- [x] 数组工具
-- [x] 系统信息
-- [x] 超高精度Float64加、减、乘、除运算
-- [x] Bit  Bytes 单位换算工具
-
+- ✅ CGO支持
+- ✅ 自定义加、解密
+- ✅ 简单的 SSH Client
+- ✅ 简易 SCP 工具
+- ✅ 简单的 HTTP Client
+- ✅ 简单的 ORM 封装
+- ✅ Aliyun SMS 简单处理
+- ✅ 日志分片(异步日志文件管理)，
+- ✅ 时间工具
+- ✅ 字符串工具
+- ✅ 数组工具
+- ✅ 系统信息
+- ✅ 超高精度Float64加、减、乘、除运算
+- ✅ Bit  Bytes 单位换算工具
+- ⚠️ file upload 文件上传
+- ❌ error
+- ❗ warning tip
 # 6. 感谢
 `gtbox`收到了 [Jetbrains](https://jb.gg/OpenSourceSupport) Licenses，非常感谢`Jetbrains`对开源项目的支持。
 
