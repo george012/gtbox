@@ -61,6 +61,8 @@ func GTMD5EncryptionGo(str string) string {
 }
 
 // GTEncryptionGo 自定义加密
+//
+// Deprecated: 请使用 GTEnc() 替代，该函数将在 v0.1.111 以后 弃用，并随时删除
 func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
 	mutex.Lock()         // 在函数开始处加锁
 	defer mutex.Unlock() // 确保函数退出时解锁
@@ -85,6 +87,8 @@ func GTEncryptionGo(srcString string, keyString string) (resultStr string) {
 }
 
 // GTDecryptionGo 自定义解密
+//
+// Deprecated: 请使用 GTDec() 替代，该函数将在 v0.1.111 以后 弃用，并随时删除
 func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
 	mutex.Lock()         // 在函数开始处加锁
 	defer mutex.Unlock() // 确保函数退出时解锁
@@ -109,6 +113,8 @@ func GTDecryptionGo(srcString string, keyString string) (resultStr string) {
 }
 
 // GTEncryptionGoReturnStringLength 自定义加密,并返回长度
+//
+// Deprecated: 请使用 GTEnc() 替代，该函数将在 v0.1.111 以后 弃用，并随时删除
 func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resultStr string, stringLength int) {
 	mutex.Lock()         // 在函数开始处加锁
 	defer mutex.Unlock() // 确保函数退出时解锁
@@ -133,6 +139,8 @@ func GTEncryptionGoReturnStringLength(srcString string, keyString string) (resul
 }
 
 // GTDecryptionGoWithLength 自定义解密,传入长度
+//
+// Deprecated: 请使用 GTDec() 替代，该函数将在 v0.1.111 以后 弃用，并随时删除
 func GTDecryptionGoWithLength(srcString string, keyString string, stringLength int) (resultStr string) {
 	mutex.Lock()         // 在函数开始处加锁
 	defer mutex.Unlock() // 确保函数退出时解锁
