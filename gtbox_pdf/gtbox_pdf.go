@@ -279,7 +279,6 @@ func suspiciousURLFragment(trim string) bool {
 
 func noahServiceIndexMarkdown() []string {
 	rows := [][]string{
-		{"服务", "用途", "算力", "URL"},
 		{"rfantibody", "抗体从头设计三步流水线（RFdiffusion -> ProteinMPNN -> RF2）", "GPU", "https://fc.ruosheng.bio/rfantibody"},
 		{"rfdiffusion", "通用蛋白扩散主链生成（unconditional / motif / binder / symmetry / 自定义）", "GPU", "https://fc.ruosheng.bio/rfdiffusion"},
 		{"genie3", "通用蛋白扩散生成（unconditional / motif / binder / 自定义 YAML）", "GPU", "https://fc.ruosheng.bio/genie3"},
@@ -289,7 +288,7 @@ func noahServiceIndexMarkdown() []string {
 		{"dockq", "DockQ 复合物结构质量评分（单对 / 批量）", "CPU（待优化）", "https://fc.ruosheng.bio/dockq"},
 	}
 	out := []string{"| 服务 | 用途 | 算力 | URL |", "|---|---|---|---|"}
-	for _, r := range rows[1:] {
+	for _, r := range rows {
 		out = append(out, fmt.Sprintf("| %s | %s | %s | %s |", r[0], r[1], r[2], r[3]))
 	}
 	return out
