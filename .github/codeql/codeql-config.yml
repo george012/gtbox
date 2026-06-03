@@ -1,0 +1,11 @@
+name: gtbox-codeql
+
+paths-ignore:
+  # CocoaPods podspec is Ruby DSL metadata, not gtbox runtime code.
+  - gtbox.podspec
+  # Prebuilt platform libraries cannot be meaningfully analyzed by CodeQL source scanning.
+  - '**/*.a'
+  - '**/*.so'
+  - '**/*.dylib'
+  - '**/*.dll'
+  - resource/**

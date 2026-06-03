@@ -3,3 +3,6 @@
 .vscode/
 ./config/config.go-e
 logs/
+
+.claude/
+CLAUDE.md
