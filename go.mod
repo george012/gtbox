@@ -5,6 +5,7 @@ go 1.25.0
 require (
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/bramvdbogaerde/go-scp v1.6.0
+	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/redis/go-redis/v9 v9.19.0
 	github.com/shopspring/decimal v1.4.0
