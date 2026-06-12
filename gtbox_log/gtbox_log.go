@@ -21,6 +21,7 @@ var (
 	logConfigOnce    sync.Once
 	setupComplete    bool
 	mainLog          *GTLog
+	mainLogOnce      sync.Once
 )
 
 // GTLogStyle 日志样式
@@ -71,12 +72,20 @@ func instanceConfig() *GTLogConf {
 	return currentLogConfig
 }
 
+// setupDefaultLog 懒加载默认 mainLog。所有包级 LogXxxf 入口都经它取 logger，多 goroutine
+// 首次并发调日志时会同时跑到这里——故用 mainLogOnce 收口「check-then-act」，保证 mainLog 只
+// 被创建一次、并发安全（对齐文件内已有的 logConfigOnce 风格）。原裸 if 判断（无锁读写包级
+// mainLog/setupComplete）在并发下是 data race（go test -race 可复现）。
+// setupComplete 语义不变：它只在 SetupLogTools 被置 false（且全局从不置 true），故等价于
+// 「mainLog==nil 时懒建」，Once 内保留该判断不改变既有行为。
 func setupDefaultLog() *GTLog {
-	if setupComplete == false && mainLog == nil {
-		mainLog = NewGTLog(
-			strings.ToLower(instanceConfig().productName),
-		)
-	}
+	mainLogOnce.Do(func() {
+		if setupComplete == false && mainLog == nil {
+			mainLog = NewGTLog(
+				strings.ToLower(instanceConfig().productName),
+			)
+		}
+	})
 	return mainLog
 }
 
