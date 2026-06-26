@@ -8,6 +8,7 @@ import (
 	"github.com/george012/gtbox/gtbox_color"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
+	"io"
 	"os"
 	"regexp"
 	"runtime"
@@ -15,6 +16,17 @@ import (
 	"sync"
 	"time"
 )
+
+// ansiEscapeRe 匹配 ANSI 色码,落文件前 strip 用。
+var ansiEscapeRe = regexp.MustCompile(`\x1b\[[0-9;]*m`)
+
+// stripANSIWriter 包一个 io.Writer,写之前去掉 ANSI 色码;Both 模式 file sink 用,避免 \x1b[36m 这种入文件。
+type stripANSIWriter struct{ inner io.Writer }
+
+func (w *stripANSIWriter) Write(p []byte) (int, error) {
+	_, err := w.inner.Write(ansiEscapeRe.ReplaceAll(p, nil))
+	return len(p), err
+}
 
 var (
 	currentLogConfig *GTLogConf
@@ -60,6 +72,7 @@ type GTLogConf struct {
 	productName       string
 	productLogDir     string
 	enableSaveLogFile bool
+	keepStdout        bool // enableSaveLogFile=true 时是否同时保留 stdout(双输出);=false 时无效
 	logLeve           GTLogStyle
 	logMaxSaveDays    int64
 	logSaveType       GTLogSaveType
@@ -92,6 +105,7 @@ func setupDefaultLog() *GTLog {
 type GTLog struct {
 	sync.RWMutex
 	saveFileEnabled bool
+	keepStdout      bool           // saveFileEnabled=true 时是否同时保留 stdout(双输出)
 	logger          *logrus.Logger // 添加这一行
 	modelName       string
 	logDir          string
@@ -121,7 +135,9 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 	defer aLog.Unlock()
 
 	colorFormat := format
-	if aLog.saveFileEnabled == false {
+	// stdout 在场(只 stdout 或 stdout+file 双输出)就上色;只 file 时不上色保文件干净。
+	// Both 模式 stdout 拿带 ANSI 的 string;file sink 在 SetOutput 时已 wrap stripANSIWriter,落盘前 strip 掉。
+	if aLog.saveFileEnabled == false || aLog.keepStdout {
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
 		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
 		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
@@ -289,16 +305,21 @@ func NewGTLog(modelName string) *GTLog {
 	}
 
 	gtLog.saveFileEnabled = instanceConfig().enableSaveLogFile
+	gtLog.keepStdout = instanceConfig().keepStdout
 
-	// 设置默认日志输出为控制台
-	gtLog.logger.SetOutput(os.Stdout)
-
-	// 设置日志输出，可以根据EnableSaveLogFile和其他参数来配置
-	// （省略了日志轮转和文件输出的设置，可以直接使用SetupLogTools中相关的代码）
-	//	设置Log
-	if instanceConfig().enableSaveLogFile == true {
+	// 三态 SetOutput:
+	//   saveFileEnabled=false             → 只 stdout
+	//   saveFileEnabled=true,keepStdout=false → 只 file
+	//   saveFileEnabled=true,keepStdout=true  → stdout + file(file 端 strip ANSI)
+	switch {
+	case gtLog.saveFileEnabled && gtLog.keepStdout:
+		rLog := newLogSaveHandler(gtLog)
+		gtLog.logger.SetOutput(io.MultiWriter(os.Stdout, &stripANSIWriter{inner: rLog}))
+	case gtLog.saveFileEnabled:
 		rLog := newLogSaveHandler(gtLog)
 		gtLog.logger.SetOutput(rLog)
+	default:
+		gtLog.logger.SetOutput(os.Stdout)
 	}
 
 	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
@@ -343,12 +364,13 @@ func LogWarnf(format string, args ...interface{}) {
 	setupDefaultLog().logF(GTLogStyleWarning, format, args...)
 }
 
-// SetupLogTools 初始化日志
-func SetupLogTools(productName string, enableSaveLogFile bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
+// SetupLogTools 初始化日志。keepStdout 仅在 enableSaveLogFile=true 时有效:true=stdout+file 双输出,false=只 file。
+func SetupLogTools(productName string, enableSaveLogFile bool, keepStdout bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
 	setupComplete = false
 
 	instanceConfig().productName = productName
 	instanceConfig().enableSaveLogFile = enableSaveLogFile
+	instanceConfig().keepStdout = keepStdout
 	instanceConfig().logLeve = logLeve
 	instanceConfig().logMaxSaveDays = logMaxSaveDays
 	instanceConfig().logSaveType = logSaveType

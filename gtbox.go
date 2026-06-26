@@ -2,12 +2,13 @@ package gtbox
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/george012/gtbox/config"
 	"github.com/george012/gtbox/gtbox_coding"
 	"github.com/george012/gtbox/gtbox_encryption"
 	"github.com/george012/gtbox/gtbox_http"
 	"github.com/george012/gtbox/gtbox_log"
-	"time"
 )
 
 type RunMode int
@@ -60,21 +61,25 @@ func GetCurrentRunMode() RunMode {
 */
 func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMaxSaveDays int64, logSaveType gtbox_log.GTLogSaveType, httpRequestTimeOut time.Duration) {
 	enableSaveLogFile := false
+	keepStdout := false
 	logLevel := gtbox_log.GTLogStyleDebug
 	currentRunMode = runMode
 	switch runMode {
 	case RunModeDebug:
-		enableSaveLogFile = false
+		enableSaveLogFile = true
+		keepStdout = true
 		logLevel = gtbox_log.GTLogStyleDebug
 	case RunModeTest:
 		enableSaveLogFile = true
+		keepStdout = false
 		logLevel = gtbox_log.GTLogStyleDebug
 	case RunModeRelease:
 		enableSaveLogFile = true
+		keepStdout = false
 		logLevel = gtbox_log.GTLogStyleInfo
 	}
 
-	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, logLevel, logMaxSaveDays, logSaveType, productLogDir)
+	gtbox_log.SetupLogTools(projectName, enableSaveLogFile, keepStdout, logLevel, logMaxSaveDays, logSaveType, productLogDir)
 
 	gtbox_http.DefaultTimeout = httpRequestTimeOut
 	config.IsSetup = true
