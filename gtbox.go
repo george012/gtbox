@@ -91,7 +91,7 @@ func SetupGTBox(projectName string, runMode RunMode, productLogDir string, logMa
 		logSaveType.String(),
 		logMaxSaveDays,
 		gtbox_http.DefaultTimeout.Seconds(),
-		gtbox_coding.GetProjectCodeLines(),
+		gtbox_coding.GetProjectCodeLinesWithOptions(&gtbox_coding.GTCodeLinesOptions{IgnoreTestFiles: true}),
 		gtbox_encryption.GetEncryptionLibVersion(),
 	)
 }
