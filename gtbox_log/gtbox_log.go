@@ -113,9 +113,8 @@ type GTLog struct {
 	logDirWithDate  string
 	entryTime       time.Time              // 日志初始化时间,留作后续比对使用
 	lastCheckTime   time.Time              // 记录最后一次检查时间,用作日志轮转
-	rotateHandle    *rotatelogs.RotateLogs // 当前 file sink 句柄;nil = 未建立(降级重试中)
-	rotateHandleDir string                 // rotateHandle 归属的日期目录,维护 tick 据此判断是否需换句柄
-	sinkFailedDir   string                 // 已报过建失败的目标目录,防维护 tick 每分钟重复刷 stderr
+	rotateHandle    *rotatelogs.RotateLogs // 当前 file sink 句柄;nil = 创建失败,file 路不可用
+	rotateHandleDir string                 // rotateHandle 归属的日期目录(日切重建失败沿用旧句柄时与 logDirWithDate 不同)
 }
 
 func GetProjectName() string {
@@ -276,7 +275,7 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 //	rotateHandle 在,keepStdout=false          → 只 file
 //	rotateHandle 在,keepStdout=true           → stdout + file(file 端 strip ANSI)
 //
-// 句柄的创建 / 日切重建 / 失败自愈见 NewGTLog 与 checkAndUpdateLogDir。
+// 句柄的创建见 NewGTLog,日切重建见 checkAndUpdateLogDir。
 // 修复前 nil 句柄被直接包进 MultiWriter,后台维护 goroutine 首次写日志即 SIGSEGV。
 // 并发约束:仅允许 NewGTLog(goroutine 启动前)或持有 aLog 锁的调用方使用。
 func (aLog *GTLog) wireOutput() {
@@ -333,19 +332,15 @@ func NewGTLog(modelName string) *GTLog {
 	gtLog.saveFileEnabled = instanceConfig().enableSaveLogFile
 	gtLog.keepStdout = instanceConfig().keepStdout
 
-	// file sink 启动装配。失败路径按"失败后还剩不剩活通道"分级:
-	//   只 file 模式(Release/Test)→ file 是唯一通道,建不起来 = 盲跑,显式拒绝启动;
-	//   双路模式(Debug)→ stdout 仍是显式选择的活通道,降级可见,维护 tick 每分钟重试自愈。
+	// file sink 启动装配。建失败不 fatal 不崩溃:stderr 报因,接现有可用通道继续跑。
+	// 句柄重建只随日切发生(见 checkAndUpdateLogDir);运行中写失败的探测与恢复
+	// 本库不承诺——不宣称没有覆盖的能力。
 	if gtLog.saveFileEnabled {
 		if rLog := newLogSaveHandler(gtLog); rLog != nil {
 			gtLog.rotateHandle = rLog
 			gtLog.rotateHandleDir = gtLog.logDirWithDate
-		} else if !gtLog.keepStdout {
-			fmt.Fprintf(os.Stderr, "[gtbox_log] FATAL: file-only log sink unavailable, refusing to run blind [dir=%s]\n", gtLog.logDir)
-			os.Exit(1)
 		} else {
-			fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink unavailable, fallback to stdout only, retry per minute [dir=%s]\n", gtLog.logDir)
-			gtLog.sinkFailedDir = gtLog.logDirWithDate
+			fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink unavailable, continue without file sink [dir=%s]\n", gtLog.logDir)
 		}
 	}
 	gtLog.wireOutput()

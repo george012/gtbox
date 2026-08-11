@@ -1,43 +1,11 @@
 package gtbox_log
 
 import (
-	"errors"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
 )
-
-// TestFileOnlyUnwritableDirRefusesToStart 只 file 模式(Release/Test:file 是唯一输出通道)
-// 日志目录不可写 → 显式拒绝启动(exit 1),绝不盲跑。os.Exit 需子进程验证(Go 标准崩溃测试模式)。
-func TestFileOnlyUnwritableDirRefusesToStart(t *testing.T) {
-	skipIfPermUnenforceable(t)
-
-	if dir := os.Getenv("GTBOX_LOG_FATAL_TEST_DIR"); dir != "" {
-		// 子进程分支:构造只 file 模式 + 不可写目录,NewGTLog 应 os.Exit(1) 不返回
-		cfg := instanceConfig()
-		cfg.productLogDir = dir
-		cfg.enableSaveLogFile = true
-		cfg.keepStdout = false
-		NewGTLog("fatal_test")
-		os.Exit(0) // 不应到达
-	}
-
-	parent := t.TempDir()
-	if err := os.Chmod(parent, 0o500); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = os.Chmod(parent, 0o755) })
-
-	cmd := exec.Command(os.Args[0], "-test.run=TestFileOnlyUnwritableDirRefusesToStart")
-	cmd.Env = append(os.Environ(), "GTBOX_LOG_FATAL_TEST_DIR="+filepath.Join(parent, "denied"))
-	err := cmd.Run()
-	var exitErr *exec.ExitError
-	if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
-		t.Fatalf("file-only 模式日志目录不可写应 exit 1 拒绝启动, got %v", err)
-	}
-}
 
 // TestLogFileDirAndNameSameClock 文件名日期与日期目录必须同钟(UTC)。
 // 回归背景:rotatelogs 默认 Local 时钟,目录命名用 UTC——UTC+8 机器每天本地 00:00-08:00,

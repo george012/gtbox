@@ -35,9 +35,9 @@ func (aLog *GTLog) startLogMaintenance(firstRunFunc func(done chan struct{})) {
 	<-done // 等待通道关闭，表示首次执行已完成
 }
 
-// checkAndUpdateLogDir 维护 file sink:日期切换换句柄;句柄缺失(启动降级)或上次重建
-// 失败则重试,权限恢复即自愈。重建失败沿用旧句柄继续写——日志零丢失、仅归档错位,
-// 绝不因日切失败中断运行中的服务;下一分钟 tick 自动再试。
+// checkAndUpdateLogDir 日切维护:UTC 日期变了就重建 rotate 句柄并切换日期目录
+// (触发条件与原设计一致:目录日期变化,每日一次)。重建失败 stderr 报因,
+// 旧句柄(若在)继续写,不中断运行中的服务,下次日切再试。
 // 修复前此处直接 SetOutput(rLog):日切后丢 keepStdout 双输出与 stripANSI,
 // rLog 为 nil 时(目录不可写)后续写日志直接 SIGSEGV,且旧句柄从不关闭(每日泄漏一个 fd)。
 func (aLog *GTLog) checkAndUpdateLogDir() {
@@ -49,23 +49,15 @@ func (aLog *GTLog) checkAndUpdateLogDir() {
 	}
 	now := time.Now().UTC()
 	wantDir := fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
-	if aLog.rotateHandle != nil && aLog.rotateHandleDir == wantDir {
+	if aLog.logDirWithDate == wantDir {
 		return
 	}
 
 	aLog.logDirWithDate = wantDir
 	rLog := newLogSaveHandler(aLog)
 	if rLog == nil {
-		// 同一目标目录只报一次,防每分钟刷 stderr
-		if aLog.sinkFailedDir != wantDir {
-			fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink rebuild failed, keep last sink, retry per minute [dir=%s]\n", wantDir)
-			aLog.sinkFailedDir = wantDir
-		}
+		fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink rebuild failed, keep last sink [dir=%s]\n", wantDir)
 		return
-	}
-	if aLog.sinkFailedDir != "" {
-		fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink recovered [dir=%s]\n", wantDir)
-		aLog.sinkFailedDir = ""
 	}
 
 	oldHandle := aLog.rotateHandle
