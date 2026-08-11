@@ -31,7 +31,7 @@ jobs:
       - name: do testing
         shell: bash
         run: |
-          go test -v -run ./...
+          go test -v ./...
 
   Release:
     runs-on: ubuntu-latest

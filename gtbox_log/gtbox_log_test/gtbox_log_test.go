@@ -7,7 +7,8 @@ import (
 )
 
 func TestCustomLog(t *testing.T) {
-	gtbox_log.SetupLogTools("testP", true, true, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, "")
+	// 日志目录显式给临时目录:传 "" 在 linux 上默认 /var/log/<name>,CI runner 无权限
+	gtbox_log.SetupLogTools("testP", true, true, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, t.TempDir())
 
 	for q := 0; q < 1; q++ {
 		gtbox_log.LogDebugf("main_test %d debug", q)

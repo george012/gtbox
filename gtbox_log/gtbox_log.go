@@ -264,6 +264,35 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 	return writer
 }
 
+// applyOutput 按三态装配 logger 输出:
+//
+//	saveFileEnabled=false                 → 只 stdout
+//	saveFileEnabled=true,keepStdout=false → 只 file
+//	saveFileEnabled=true,keepStdout=true  → stdout + file(file 端 strip ANSI)
+//
+// rotate 句柄创建失败(如日志目录不可写:容器只读 rootfs、CI runner 无 /var/log 权限)时
+// 降级为只 stdout 并置 saveFileEnabled=false——log 库绝不能因落盘不可用把宿主进程打崩;
+// 修复前 nil 句柄被直接包进 MultiWriter,后台维护 goroutine 首次写日志即 SIGSEGV。
+// 并发约束:仅允许 NewGTLog(goroutine 启动前)或持有 aLog 锁的调用方使用。
+func (aLog *GTLog) applyOutput() {
+	if !aLog.saveFileEnabled {
+		aLog.logger.SetOutput(os.Stdout)
+		return
+	}
+	rLog := newLogSaveHandler(aLog)
+	if rLog == nil {
+		fmt.Printf("[gtbox_log] log file sink unavailable, fallback to stdout only [dir=%s]\n", aLog.logDir)
+		aLog.saveFileEnabled = false
+		aLog.logger.SetOutput(os.Stdout)
+		return
+	}
+	if aLog.keepStdout {
+		aLog.logger.SetOutput(io.MultiWriter(os.Stdout, &stripANSIWriter{inner: rLog}))
+	} else {
+		aLog.logger.SetOutput(rLog)
+	}
+}
+
 // NewGTLog 添加GTLog模块
 func NewGTLog(modelName string) *GTLog {
 	currentTime := time.Now().UTC()
@@ -307,20 +336,7 @@ func NewGTLog(modelName string) *GTLog {
 	gtLog.saveFileEnabled = instanceConfig().enableSaveLogFile
 	gtLog.keepStdout = instanceConfig().keepStdout
 
-	// 三态 SetOutput:
-	//   saveFileEnabled=false             → 只 stdout
-	//   saveFileEnabled=true,keepStdout=false → 只 file
-	//   saveFileEnabled=true,keepStdout=true  → stdout + file(file 端 strip ANSI)
-	switch {
-	case gtLog.saveFileEnabled && gtLog.keepStdout:
-		rLog := newLogSaveHandler(gtLog)
-		gtLog.logger.SetOutput(io.MultiWriter(os.Stdout, &stripANSIWriter{inner: rLog}))
-	case gtLog.saveFileEnabled:
-		rLog := newLogSaveHandler(gtLog)
-		gtLog.logger.SetOutput(rLog)
-	default:
-		gtLog.logger.SetOutput(os.Stdout)
-	}
+	gtLog.applyOutput()
 
 	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
 	gtLog.startLogMaintenance(func(done chan struct{}) {

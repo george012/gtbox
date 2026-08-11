@@ -35,16 +35,22 @@ func (aLog *GTLog) startLogMaintenance(firstRunFunc func(done chan struct{})) {
 	<-done // 等待通道关闭，表示首次执行已完成
 }
 
-// checkAndUpdateLogDir 检查并更新日志目录
+// checkAndUpdateLogDir 检查并更新日志目录(日期切换时轮转 rotate 句柄)
 func (aLog *GTLog) checkAndUpdateLogDir() {
-	// TODO 每分钟检查一次是否需要更新日志文件路径
+	aLog.Lock()
+	defer aLog.Unlock()
+
+	if !aLog.saveFileEnabled {
+		return
+	}
 	now := time.Now().UTC()
 	newLogDirWithDate := fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
 
 	if aLog.logDirWithDate != newLogDirWithDate {
 		aLog.logDirWithDate = newLogDirWithDate
-		rLog := newLogSaveHandler(aLog)
-		aLog.logger.SetOutput(rLog)
+		// 走统一三态装配:修复前此处直接 SetOutput(rLog)——日切后丢 keepStdout 双输出与
+		// stripANSI,且 rLog 为 nil 时(目录不可写)后续写日志直接 SIGSEGV
+		aLog.applyOutput()
 		aLog.lastCheckTime = now
 	}
 }
