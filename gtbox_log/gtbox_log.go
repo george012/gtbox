@@ -28,10 +28,13 @@ func (w *stripANSIWriter) Write(p []byte) (int, error) {
 	return len(p), err
 }
 
+// logSegmentRe 拆分 format 中的占位符 / 中括号 / 普通片段,logF 上色用;
+// 包级编译一次(修复:原先每条日志都 MustCompile 一次)。
+var logSegmentRe = regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
+
 var (
 	currentLogConfig *GTLogConf
 	logConfigOnce    sync.Once
-	setupComplete    bool
 	mainLog          *GTLog
 	mainLogOnce      sync.Once
 )
@@ -88,12 +91,10 @@ func instanceConfig() *GTLogConf {
 // setupDefaultLog 懒加载默认 mainLog。所有包级 LogXxxf 入口都经它取 logger，多 goroutine
 // 首次并发调日志时会同时跑到这里——故用 mainLogOnce 收口「check-then-act」，保证 mainLog 只
 // 被创建一次、并发安全（对齐文件内已有的 logConfigOnce 风格）。原裸 if 判断（无锁读写包级
-// mainLog/setupComplete）在并发下是 data race（go test -race 可复现）。
-// setupComplete 语义不变：它只在 SetupLogTools 被置 false（且全局从不置 true），故等价于
-// 「mainLog==nil 时懒建」，Once 内保留该判断不改变既有行为。
+// mainLog）在并发下是 data race（go test -race 可复现）。
 func setupDefaultLog() *GTLog {
 	mainLogOnce.Do(func() {
-		if setupComplete == false && mainLog == nil {
+		if mainLog == nil {
 			mainLog = NewGTLog(
 				strings.ToLower(instanceConfig().productName),
 			)
@@ -110,8 +111,11 @@ type GTLog struct {
 	modelName       string
 	logDir          string
 	logDirWithDate  string
-	entryTime       time.Time // 日志初始化时间,留作后续比对使用
-	lastCheckTime   time.Time // 记录最后一次检查时间,用作日志轮转
+	entryTime       time.Time              // 日志初始化时间,留作后续比对使用
+	lastCheckTime   time.Time              // 记录最后一次检查时间,用作日志轮转
+	rotateHandle    *rotatelogs.RotateLogs // 当前 file sink 句柄;nil = 未建立(降级重试中)
+	rotateHandleDir string                 // rotateHandle 归属的日期目录,维护 tick 据此判断是否需换句柄
+	sinkFailedDir   string                 // 已报过建失败的目标目录,防维护 tick 每分钟重复刷 stderr
 }
 
 func GetProjectName() string {
@@ -139,8 +143,7 @@ func (aLog *GTLog) logF(style GTLogStyle, format string, args ...interface{}) {
 	// Both 模式 stdout 拿带 ANSI 的 string;file sink 在 SetOutput 时已 wrap stripANSIWriter,落盘前 strip 掉。
 	if aLog.saveFileEnabled == false || aLog.keepStdout {
 		// 对每个占位符、非占位符片段和'['、']'进行迭代，为它们添加相应的颜色
-		re := regexp.MustCompile(`(%[vTsdfqTbcdoxXUeEgGp]+)|(\[|\])|([^%\[\]]+)`)
-		colorFormat = re.ReplaceAllStringFunc(format, func(s string) string {
+		colorFormat = logSegmentRe.ReplaceAllStringFunc(format, func(s string) string {
 			switch {
 			case strings.HasPrefix(s, "%"):
 				return fmt.Sprintf("%s%s%s", gtbox_color.ANSIColorForegroundBrightYellow, s, gtbox_color.ANSIColorReset)
@@ -252,6 +255,9 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 	*/
 	writer, err := rotatelogs.New(
 		logFilePath+".%Y-%m-%d_%H.log",
+		// 文件名与日期目录同用 UTC。rotatelogs 默认 Local 时钟,与 UTC 命名的日期目录裂脑:
+		// UTC+8 机器每天本地 00:00-08:00,新一天(本地)的文件落在旧 UTC 日期目录里
+		rotatelogs.WithClock(rotatelogs.UTC),
 		rotatelogs.WithLinkName(linkLogFilePath),
 		rotatelogs.WithMaxAge(time.Duration(instanceConfig().logMaxSaveDays)*24*time.Hour),
 		rotatelogs.WithRotationTime(determineRotationTime(instanceConfig().logSaveType)),
@@ -264,32 +270,23 @@ func newLogSaveHandler(gtLog *GTLog) (rotateLogger *rotatelogs.RotateLogs) {
 	return writer
 }
 
-// applyOutput 按三态装配 logger 输出:
+// wireOutput 把当前可用输出接到 logger(只接线,不创建句柄):
 //
-//	saveFileEnabled=false                 → 只 stdout
-//	saveFileEnabled=true,keepStdout=false → 只 file
-//	saveFileEnabled=true,keepStdout=true  → stdout + file(file 端 strip ANSI)
+//	saveFileEnabled=false 或 rotateHandle=nil → 只 stdout
+//	rotateHandle 在,keepStdout=false          → 只 file
+//	rotateHandle 在,keepStdout=true           → stdout + file(file 端 strip ANSI)
 //
-// rotate 句柄创建失败(如日志目录不可写:容器只读 rootfs、CI runner 无 /var/log 权限)时
-// 降级为只 stdout 并置 saveFileEnabled=false——log 库绝不能因落盘不可用把宿主进程打崩;
+// 句柄的创建 / 日切重建 / 失败自愈见 NewGTLog 与 checkAndUpdateLogDir。
 // 修复前 nil 句柄被直接包进 MultiWriter,后台维护 goroutine 首次写日志即 SIGSEGV。
 // 并发约束:仅允许 NewGTLog(goroutine 启动前)或持有 aLog 锁的调用方使用。
-func (aLog *GTLog) applyOutput() {
-	if !aLog.saveFileEnabled {
+func (aLog *GTLog) wireOutput() {
+	switch {
+	case aLog.saveFileEnabled && aLog.rotateHandle != nil && aLog.keepStdout:
+		aLog.logger.SetOutput(io.MultiWriter(os.Stdout, &stripANSIWriter{inner: aLog.rotateHandle}))
+	case aLog.saveFileEnabled && aLog.rotateHandle != nil:
+		aLog.logger.SetOutput(aLog.rotateHandle)
+	default:
 		aLog.logger.SetOutput(os.Stdout)
-		return
-	}
-	rLog := newLogSaveHandler(aLog)
-	if rLog == nil {
-		fmt.Printf("[gtbox_log] log file sink unavailable, fallback to stdout only [dir=%s]\n", aLog.logDir)
-		aLog.saveFileEnabled = false
-		aLog.logger.SetOutput(os.Stdout)
-		return
-	}
-	if aLog.keepStdout {
-		aLog.logger.SetOutput(io.MultiWriter(os.Stdout, &stripANSIWriter{inner: rLog}))
-	} else {
-		aLog.logger.SetOutput(rLog)
 	}
 }
 
@@ -316,7 +313,7 @@ func NewGTLog(modelName string) *GTLog {
 	gtLog.logger.SetLevel(logrus.TraceLevel)
 
 	// 根据LogLevel设置logrus的日志级别
-	switch currentLogConfig.logLeve {
+	switch instanceConfig().logLeve {
 	case GTLogStyleFatal:
 		gtLog.logger.SetLevel(logrus.FatalLevel)
 	case GTLogStyleTrace:
@@ -336,7 +333,22 @@ func NewGTLog(modelName string) *GTLog {
 	gtLog.saveFileEnabled = instanceConfig().enableSaveLogFile
 	gtLog.keepStdout = instanceConfig().keepStdout
 
-	gtLog.applyOutput()
+	// file sink 启动装配。失败路径按"失败后还剩不剩活通道"分级:
+	//   只 file 模式(Release/Test)→ file 是唯一通道,建不起来 = 盲跑,显式拒绝启动;
+	//   双路模式(Debug)→ stdout 仍是显式选择的活通道,降级可见,维护 tick 每分钟重试自愈。
+	if gtLog.saveFileEnabled {
+		if rLog := newLogSaveHandler(gtLog); rLog != nil {
+			gtLog.rotateHandle = rLog
+			gtLog.rotateHandleDir = gtLog.logDirWithDate
+		} else if !gtLog.keepStdout {
+			fmt.Fprintf(os.Stderr, "[gtbox_log] FATAL: file-only log sink unavailable, refusing to run blind [dir=%s]\n", gtLog.logDir)
+			os.Exit(1)
+		} else {
+			fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink unavailable, fallback to stdout only, retry per minute [dir=%s]\n", gtLog.logDir)
+			gtLog.sinkFailedDir = gtLog.logDirWithDate
+		}
+	}
+	gtLog.wireOutput()
 
 	// 启动日志维护 Goroutine，首次执行完成后继续初始化操作
 	gtLog.startLogMaintenance(func(done chan struct{}) {
@@ -382,8 +394,6 @@ func LogWarnf(format string, args ...interface{}) {
 
 // SetupLogTools 初始化日志。keepStdout 仅在 enableSaveLogFile=true 时有效:true=stdout+file 双输出,false=只 file。
 func SetupLogTools(productName string, enableSaveLogFile bool, keepStdout bool, logLeve GTLogStyle, logMaxSaveDays int64, logSaveType GTLogSaveType, productLogDir string) {
-	setupComplete = false
-
 	instanceConfig().productName = productName
 	instanceConfig().enableSaveLogFile = enableSaveLogFile
 	instanceConfig().keepStdout = keepStdout

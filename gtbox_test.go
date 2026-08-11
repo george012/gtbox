@@ -44,8 +44,9 @@ func EncryptionToolsTest(t *testing.T) {
 func TestGTBoxFunctions(t *testing.T) {
 	//	TODO 初始化gtbox及log分片
 	//SetupGTBox("test_gtbox", RunModeRelease, "", 3, gtbox_log.GTLogSaveHours, 60)
-	// 日志目录显式给临时目录:传 "" 在 linux 上默认 /var/log/<name>,CI runner 无权限
-	SetupGTBox("test_gtbox", RunModeDebug, t.TempDir(), 3, gtbox_log.GTLogSaveHours, 60)
+	// 传 "" = 测默认日志路径这条一等用法:darwin/windows → ./logs(已 gitignore);
+	// linux 非 root(如 CI)→ /var/log/<name> 不可写 → 库内降级只 stdout,顺带实测降级路径
+	SetupGTBox("test_gtbox", RunModeDebug, "", 3, gtbox_log.GTLogSaveHours, 60)
 
 	gtbox_log.LogDebugf("level  %s", "aleve")
 	gtbox_log.LogInfof("aaaaa%s", "qqq")

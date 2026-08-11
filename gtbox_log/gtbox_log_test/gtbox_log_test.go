@@ -7,8 +7,9 @@ import (
 )
 
 func TestCustomLog(t *testing.T) {
-	// 日志目录显式给临时目录:传 "" 在 linux 上默认 /var/log/<name>,CI runner 无权限
-	gtbox_log.SetupLogTools("testP", true, true, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, t.TempDir())
+	// 传 "" = 测默认日志路径这条一等用法:darwin/windows → ./logs(已 gitignore);
+	// linux 非 root(如 CI)→ /var/log/<name> 不可写 → 库内降级只 stdout,顺带实测降级路径
+	gtbox_log.SetupLogTools("testP", true, true, gtbox_log.GTLogStyleTrace, 3, gtbox_log.GTLogSaveHours, "")
 
 	for q := 0; q < 1; q++ {
 		gtbox_log.LogDebugf("main_test %d debug", q)

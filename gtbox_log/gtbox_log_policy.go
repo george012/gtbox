@@ -35,7 +35,11 @@ func (aLog *GTLog) startLogMaintenance(firstRunFunc func(done chan struct{})) {
 	<-done // 等待通道关闭，表示首次执行已完成
 }
 
-// checkAndUpdateLogDir 检查并更新日志目录(日期切换时轮转 rotate 句柄)
+// checkAndUpdateLogDir 维护 file sink:日期切换换句柄;句柄缺失(启动降级)或上次重建
+// 失败则重试,权限恢复即自愈。重建失败沿用旧句柄继续写——日志零丢失、仅归档错位,
+// 绝不因日切失败中断运行中的服务;下一分钟 tick 自动再试。
+// 修复前此处直接 SetOutput(rLog):日切后丢 keepStdout 双输出与 stripANSI,
+// rLog 为 nil 时(目录不可写)后续写日志直接 SIGSEGV,且旧句柄从不关闭(每日泄漏一个 fd)。
 func (aLog *GTLog) checkAndUpdateLogDir() {
 	aLog.Lock()
 	defer aLog.Unlock()
@@ -44,15 +48,34 @@ func (aLog *GTLog) checkAndUpdateLogDir() {
 		return
 	}
 	now := time.Now().UTC()
-	newLogDirWithDate := fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
-
-	if aLog.logDirWithDate != newLogDirWithDate {
-		aLog.logDirWithDate = newLogDirWithDate
-		// 走统一三态装配:修复前此处直接 SetOutput(rLog)——日切后丢 keepStdout 双输出与
-		// stripANSI,且 rLog 为 nil 时(目录不可写)后续写日志直接 SIGSEGV
-		aLog.applyOutput()
-		aLog.lastCheckTime = now
+	wantDir := fmt.Sprintf("%s/%s", aLog.logDir, now.Format("2006-01-02"))
+	if aLog.rotateHandle != nil && aLog.rotateHandleDir == wantDir {
+		return
 	}
+
+	aLog.logDirWithDate = wantDir
+	rLog := newLogSaveHandler(aLog)
+	if rLog == nil {
+		// 同一目标目录只报一次,防每分钟刷 stderr
+		if aLog.sinkFailedDir != wantDir {
+			fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink rebuild failed, keep last sink, retry per minute [dir=%s]\n", wantDir)
+			aLog.sinkFailedDir = wantDir
+		}
+		return
+	}
+	if aLog.sinkFailedDir != "" {
+		fmt.Fprintf(os.Stderr, "[gtbox_log] log file sink recovered [dir=%s]\n", wantDir)
+		aLog.sinkFailedDir = ""
+	}
+
+	oldHandle := aLog.rotateHandle
+	aLog.rotateHandle = rLog
+	aLog.rotateHandleDir = wantDir
+	aLog.wireOutput()
+	if oldHandle != nil {
+		_ = oldHandle.Close()
+	}
+	aLog.lastCheckTime = now
 }
 
 func (aLog *GTLog) cleanOldLogs() {
@@ -66,7 +89,8 @@ func (aLog *GTLog) cleanOldLogs() {
 		return
 	}
 
-	now := time.Now()
+	// UTC 与目录命名同钟(修复:原 time.Now() 本地时间对比 UTC-naive 目录日期,清理期限偏差 ±时区)
+	now := time.Now().UTC()
 	maxAge := time.Duration(instanceConfig().logMaxSaveDays) * 24 * time.Hour
 
 	for _, dir := range dirs {
@@ -76,8 +100,8 @@ func (aLog *GTLog) cleanOldLogs() {
 
 		dirPath := fmt.Sprintf("%s/%s", aLog.logDir, dir.Name())
 
-		// 跳过当前正在使用的日志目录
-		if dirPath == aLog.logDirWithDate {
+		// 跳过当前目标目录与在用句柄的归属目录(日切重建失败时二者可能不同)
+		if dirPath == aLog.logDirWithDate || dirPath == aLog.rotateHandleDir {
 			continue
 		}
 
