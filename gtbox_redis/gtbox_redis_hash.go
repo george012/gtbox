@@ -6,7 +6,7 @@ import (
 )
 
 func (gtr *GTRedis) HGetAll(key string) (map[string]string, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 
 	val, err := gtr.redisClient.HGetAll(ctx, aKey).Result()
 	return val, err
@@ -14,7 +14,10 @@ func (gtr *GTRedis) HGetAll(key string) (map[string]string, error) {
 
 // HSet Hash类型-插入单条数据
 func (gtr *GTRedis) HSet(key string, subKey string, jsonByte []byte) error {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	if err := gtr.writeGuard(); err != nil {
+		return err
+	}
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 
 	err := gtr.redisClient.HSet(ctx, aKey, subKey, jsonByte).Err()
 	return err
@@ -22,37 +25,41 @@ func (gtr *GTRedis) HSet(key string, subKey string, jsonByte []byte) error {
 
 // HGet Hash类型-获取单条数据
 func (gtr *GTRedis) HGet(key string, subKey string) (string, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 	val, a_err := gtr.redisClient.HGet(ctx, aKey, subKey).Result()
 	return val, a_err
 }
 
 // HDel Hash类型-删除单条数据
 func (gtr *GTRedis) HDel(key string, subKey string) error {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	if err := gtr.writeGuard(); err != nil {
+		return err
+	}
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 
 	err := gtr.redisClient.HDel(ctx, aKey, subKey).Err()
 	return err
 }
 
 // HExists Hash类型-判断是否存在
-func (gtr *GTRedis) HExists(key string, subKey string) bool {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
-	val, _ := gtr.redisClient.HExists(ctx, aKey, subKey).Result()
+func (gtr *GTRedis) HExists(key string, subKey string) (bool, error) {
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
+	val, err := gtr.redisClient.HExists(ctx, aKey, subKey).Result()
 
-	return val
+	return val, err
 }
 
 func (gtr *GTRedis) HKeys(key string) ([]string, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 	val, err := gtr.redisClient.HKeys(ctx, aKey).Result()
 
 	return val, err
 }
 
-// ScanSameLevelKeys 使用 SCAN 命令查找同级的键
+// ScanSameLevelKeys 使用 SCAN 命令查找同级的键。
+// SCAN 迭代期间可能重复返回同一键(redis 文档明载行为),结果已去重。
 func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 
 	// 分割 key，并使用最后一个部分的通配符进行模式匹配
 	parts := strings.Split(aKey, ":")
@@ -63,6 +70,7 @@ func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
 	parts[len(parts)-1] = "*"
 	pattern := strings.Join(parts, ":")
 	var cursor uint64
+	seen := make(map[string]struct{})
 	var keys []string
 
 	// 循环使用 SCAN 命令查找所有匹配的键
@@ -72,7 +80,12 @@ func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
 			return nil, err
 		}
 
-		keys = append(keys, scanKeys...)
+		for _, k := range scanKeys {
+			if _, dup := seen[k]; !dup {
+				seen[k] = struct{}{}
+				keys = append(keys, k)
+			}
+		}
 		cursor = newCursor
 
 		if cursor == 0 {
@@ -83,14 +96,14 @@ func (gtr *GTRedis) ScanSameLevelKeys(key string) ([]string, error) {
 	return keys, nil
 }
 
-func (gtr *GTRedis) HScan(key string, cursor uint64, match string, count int64) ([]string, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
-	val, _, err := gtr.redisClient.HScan(ctx, aKey, cursor, match, count).Result()
-	return val, err
+func (gtr *GTRedis) HScan(key string, cursor uint64, match string, count int64) ([]string, uint64, error) {
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
+	val, newCursor, err := gtr.redisClient.HScan(ctx, aKey, cursor, match, count).Result()
+	return val, newCursor, err
 }
 
 func (gtr *GTRedis) HLen(key string) (int64, error) {
-	aKey := fmt.Sprintf("%s:%s", prefix, key)
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
 	val, err := gtr.redisClient.HLen(ctx, aKey).Result()
 	return val, err
 }
