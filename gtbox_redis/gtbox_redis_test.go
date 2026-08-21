@@ -33,6 +33,41 @@ func TestNewParamValidation(t *testing.T) {
 	if _, err := New(RedisConfig{Addr: "127.0.0.1:0", PoolSizeMultiplier: -1}, "p"); err == nil {
 		t.Fatal("negative PoolSizeMultiplier should be rejected")
 	}
+	for name, cfg := range map[string]RedisConfig{
+		"dial":  {Addr: "127.0.0.1:0", DialTimeout: -time.Second},
+		"read":  {Addr: "127.0.0.1:0", ReadTimeout: -time.Second},
+		"write": {Addr: "127.0.0.1:0", WriteTimeout: -time.Second},
+	} {
+		if _, err := New(cfg, "p"); err == nil {
+			t.Fatalf("negative %s timeout should be rejected", name)
+		}
+	}
+}
+
+// TestTimeoutPassthrough 三个超时透传到 redis.Options;0 保持 go-redis 默认。
+func TestTimeoutPassthrough(t *testing.T) {
+	_, gtr := newTestRedis(t, func(c *RedisConfig) {
+		c.DialTimeout = 900 * time.Millisecond
+		c.ReadTimeout = 300 * time.Millisecond
+		c.WriteTimeout = 400 * time.Millisecond
+	}, "p")
+	opts := gtr.redisClient.Options()
+	if opts.DialTimeout != 900*time.Millisecond {
+		t.Fatalf("DialTimeout got %s, want 900ms", opts.DialTimeout)
+	}
+	if opts.ReadTimeout != 300*time.Millisecond {
+		t.Fatalf("ReadTimeout got %s, want 300ms", opts.ReadTimeout)
+	}
+	if opts.WriteTimeout != 400*time.Millisecond {
+		t.Fatalf("WriteTimeout got %s, want 400ms", opts.WriteTimeout)
+	}
+
+	// 不配 = go-redis 默认,不是零值
+	_, gtrDefault := newTestRedis(t, nil, "p")
+	def := gtrDefault.redisClient.Options()
+	if def.DialTimeout != 5*time.Second || def.ReadTimeout != 5*time.Second {
+		t.Fatalf("default timeouts got dial=%s read=%s, want 5s/5s", def.DialTimeout, def.ReadTimeout)
+	}
 }
 
 func TestPoolSizeMultiplierPassthrough(t *testing.T) {
