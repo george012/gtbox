@@ -34,9 +34,9 @@ func TestNewParamValidation(t *testing.T) {
 		t.Fatal("negative PoolSizeMultiplier should be rejected")
 	}
 	for name, cfg := range map[string]RedisConfig{
-		"dial":  {Addr: "127.0.0.1:0", DialTimeout: -time.Second},
-		"read":  {Addr: "127.0.0.1:0", ReadTimeout: -time.Second},
-		"write": {Addr: "127.0.0.1:0", WriteTimeout: -time.Second},
+		"dial":  {Addr: "127.0.0.1:0", TimeoutDial: -time.Second},
+		"read":  {Addr: "127.0.0.1:0", TimeoutRead: -time.Second},
+		"write": {Addr: "127.0.0.1:0", TimeoutWrite: -time.Second},
 	} {
 		if _, err := New(cfg, "p"); err == nil {
 			t.Fatalf("negative %s timeout should be rejected", name)
@@ -47,9 +47,9 @@ func TestNewParamValidation(t *testing.T) {
 // TestTimeoutPassthrough 三个超时透传到 redis.Options;0 保持 go-redis 默认。
 func TestTimeoutPassthrough(t *testing.T) {
 	_, gtr := newTestRedis(t, func(c *RedisConfig) {
-		c.DialTimeout = 900 * time.Millisecond
-		c.ReadTimeout = 300 * time.Millisecond
-		c.WriteTimeout = 400 * time.Millisecond
+		c.TimeoutDial = 900 * time.Millisecond
+		c.TimeoutRead = 300 * time.Millisecond
+		c.TimeoutWrite = 400 * time.Millisecond
 	}, "p")
 	opts := gtr.redisClient.Options()
 	if opts.DialTimeout != 900*time.Millisecond {

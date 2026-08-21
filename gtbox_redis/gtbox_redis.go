@@ -37,9 +37,9 @@ type RedisConfig struct {
 
 	// 三个超时按部署环境收紧用,0 = 交给 go-redis 默认(Dial 5s / Read 5s / Write 跟随 Read)。
 	// 不设时行为与本字段引入前逐字一致;负值一律拒绝,「永不超时」不作为可配项。
-	DialTimeout  time.Duration `yaml:"dialTimeout" json:"dial_timeout"`
-	ReadTimeout  time.Duration `yaml:"readTimeout" json:"read_timeout"`
-	WriteTimeout time.Duration `yaml:"writeTimeout" json:"write_timeout"`
+	TimeoutDial  time.Duration `yaml:"timeoutDial" json:"timeout_dial"`
+	TimeoutRead  time.Duration `yaml:"timeoutRead" json:"timeout_read"`
+	TimeoutWrite time.Duration `yaml:"timeoutWrite" json:"timeout_write"`
 }
 
 type GTRedis struct {
@@ -57,9 +57,9 @@ func New(redisCfg RedisConfig, prefixStr string) (*GTRedis, error) {
 	if redisCfg.PoolSizeMultiplier < 0 {
 		return nil, fmt.Errorf("gtbox_redis: PoolSizeMultiplier must be >= 0, got %d", redisCfg.PoolSizeMultiplier)
 	}
-	if redisCfg.DialTimeout < 0 || redisCfg.ReadTimeout < 0 || redisCfg.WriteTimeout < 0 {
+	if redisCfg.TimeoutDial < 0 || redisCfg.TimeoutRead < 0 || redisCfg.TimeoutWrite < 0 {
 		return nil, fmt.Errorf("gtbox_redis: timeouts must be >= 0, got dial=%s read=%s write=%s",
-			redisCfg.DialTimeout, redisCfg.ReadTimeout, redisCfg.WriteTimeout)
+			redisCfg.TimeoutDial, redisCfg.TimeoutRead, redisCfg.TimeoutWrite)
 	}
 
 	opts := &redis.Options{
@@ -67,9 +67,9 @@ func New(redisCfg RedisConfig, prefixStr string) (*GTRedis, error) {
 		Username:     redisCfg.Username,
 		Password:     redisCfg.Pwd,
 		DB:           redisCfg.SocketBuck,
-		DialTimeout:  redisCfg.DialTimeout,
-		ReadTimeout:  redisCfg.ReadTimeout,
-		WriteTimeout: redisCfg.WriteTimeout,
+		DialTimeout:  redisCfg.TimeoutDial,
+		ReadTimeout:  redisCfg.TimeoutRead,
+		WriteTimeout: redisCfg.TimeoutWrite,
 	}
 	if redisCfg.PoolSizeMultiplier > 0 {
 		opts.PoolSize = redisCfg.PoolSizeMultiplier * 10 * runtime.GOMAXPROCS(0)
