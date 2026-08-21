@@ -37,9 +37,9 @@ type RedisConfig struct {
 
 	// 三个超时按部署环境收紧用,0 = 交给 go-redis 默认(Dial 5s / Read 5s / Write 跟随 Read)。
 	// 不设时行为与本字段引入前逐字一致;负值一律拒绝,「永不超时」不作为可配项。
-	TimeoutDial  time.Duration `yaml:"timeoutDial" json:"timeout_dial"`
-	TimeoutRead  time.Duration `yaml:"timeoutRead" json:"timeout_read"`
-	TimeoutWrite time.Duration `yaml:"timeoutWrite" json:"timeout_write"`
+	TimeoutDial  time.Duration `yaml:"timeout_dial" json:"timeout_dial"`
+	TimeoutRead  time.Duration `yaml:"timeout_read" json:"timeout_read"`
+	TimeoutWrite time.Duration `yaml:"timeout_write" json:"timeout_write"`
 }
 
 type GTRedis struct {
