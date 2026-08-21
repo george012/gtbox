@@ -11,6 +11,7 @@ require (
 	github.com/aws/smithy-go v1.27.7
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/bramvdbogaerde/go-scp v1.6.1
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/redis/go-redis/v9 v9.22.0
@@ -37,7 +38,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.36 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.19.37 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/go-sql-driver/mysql v1.10.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
