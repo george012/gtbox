@@ -40,13 +40,13 @@ var (
 // 零值由构造函数立即拒绝，绝不兜底成默认 endpoint / region / bucket —— 那是某个业务的
 // 假设，不是公用层应承诺的契约。Region 仅 S3 签名需要，由 S3 实现自行校验。
 type GTCloudStoreConfig struct {
-	Provider        GTCloudStoreProvider `yaml:"provider" json:"provider"`                   // 后端类型
-	Endpoint        string               `yaml:"endpoint" json:"endpoint"`                   // 服务端点：S3 可为自定义端点(MinIO/S3兼容)，OSS 为地域端点
-	Region          string               `yaml:"region" json:"region"`                       // S3 地域，签名需要；OSS 忽略
-	AccessKeyID     string               `yaml:"access_key_id" json:"access_key_id"`         // 访问密钥 ID
-	AccessKeySecret string               `yaml:"access_key_secret" json:"access_key_secret"` // 访问密钥 Secret
-	Bucket          string               `yaml:"bucket" json:"bucket"`                       // 桶名
-	UsePathStyle    bool                 `yaml:"use_path_style" json:"use_path_style"`       // S3 path-style 寻址：对接 MinIO/自定义端点时置 true；OSS 忽略
+	Provider        GTCloudStoreProvider // 后端类型
+	Endpoint        string               // 服务端点：S3 可为自定义端点(MinIO/S3兼容)，OSS 为地域端点
+	Region          string               // S3 地域，签名需要；OSS 忽略
+	AccessKeyID     string               // 访问密钥 ID
+	AccessKeySecret string               // 访问密钥 Secret
+	Bucket          string               // 桶名
+	UsePathStyle    bool                 // S3 path-style 寻址：对接 MinIO/自定义端点时置 true；OSS 忽略
 }
 
 // Validate 校验后端无关的必填连接信息。Region 等 provider 专属字段由对应实现校验。

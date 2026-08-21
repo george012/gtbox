@@ -19,16 +19,16 @@ const (
 // 连接身份字段(DBUser/DBName/DBHost/DBPort)无默认值，零值直接报错——公用层不兜底 localhost/3306。
 // 池参数零值 = 取上面那组默认值；ConnMaxLifetime 零值 = 不限制连接存活时长(database/sql 默认)。
 type GTORMMysqlConfig struct {
-	DBUser          string                         `yaml:"db_user" json:"db_user"`
-	DBPwd           string                         `yaml:"db_pwd" json:"db_pwd"` // 允许为空，对应无密码账号
-	DBName          string                         `yaml:"db_name" json:"db_name"`
-	DBHost          string                         `yaml:"db_host" json:"db_host"`
-	DBPort          int                            `yaml:"db_port" json:"db_port"`
-	DBTimeZone      gtbox_orm_config.GTORMTimeZone `yaml:"db_time_zone" json:"db_time_zone"`
-	ConnMaxOpen     int                            `yaml:"conn_max_open" json:"conn_max_open"`
-	ConnMaxIdle     int                            `yaml:"conn_max_idle" json:"conn_max_idle"`
-	ConnMaxIdleTime time.Duration                  `yaml:"conn_max_idle_time" json:"conn_max_idle_time"`
-	ConnMaxLifetime time.Duration                  `yaml:"conn_max_lifetime" json:"conn_max_lifetime"`
+	DBUser          string
+	DBPwd           string // 允许为空，对应无密码账号
+	DBName          string
+	DBHost          string
+	DBPort          int
+	DBTimeZone      gtbox_orm_config.GTORMTimeZone
+	ConnMaxOpen     int
+	ConnMaxIdle     int
+	ConnMaxIdleTime time.Duration
+	ConnMaxLifetime time.Duration
 }
 
 // validate 参数校验；ConnMaxIdle > ConnMaxOpen 时 database/sql 会静默把 idle 压到 open，

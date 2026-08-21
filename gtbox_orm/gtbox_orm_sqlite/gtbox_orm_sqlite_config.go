@@ -20,10 +20,10 @@ const (
 // 例如 "app.db?_journal_mode=WAL&_busy_timeout=5000" 或 "file::memory:?cache=shared"。
 // 池参数零值 = 取上面那组默认值;ConnMaxIdleTime 零值 = 不回收空闲连接(sqlite 连接就是个文件句柄,常驻更省事)。
 type GTORMSqliteConfig struct {
-	DBFilePath      string        `yaml:"db_file_path" json:"db_file_path"`
-	ConnMaxOpen     int           `yaml:"conn_max_open" json:"conn_max_open"`
-	ConnMaxIdle     int           `yaml:"conn_max_idle" json:"conn_max_idle"`
-	ConnMaxIdleTime time.Duration `yaml:"conn_max_idle_time" json:"conn_max_idle_time"`
+	DBFilePath      string
+	ConnMaxOpen     int
+	ConnMaxIdle     int
+	ConnMaxIdleTime time.Duration
 }
 
 // validate 参数校验;ConnMaxIdle > ConnMaxOpen 时 database/sql 会静默把 idle 压到 open,

@@ -26,20 +26,20 @@ var (
 )
 
 type RedisConfig struct {
-	Addr       string `yaml:"addr" json:"addr"`              // address
-	Pwd        string `yaml:"pwd" json:"pwd"`                // pwd
-	SocketBuck int    `yaml:"socketBuck" json:"socket_buck"` // 插槽(redis DB index)
-	Username   string `yaml:"username" json:"username"`      // ACL 账号,空 = 传统 requirepass 鉴权
-	ReadOnly   bool   `yaml:"read_only" json:"read_only"`    // 句柄级只读防呆,写方法直接拒绝;权限边界靠服务端 ACL
+	Addr       string // address
+	Pwd        string // pwd
+	SocketBuck int    // 插槽(redis DB index)
+	Username   string // ACL 账号,空 = 传统 requirepass 鉴权
+	ReadOnly   bool   // 句柄级只读防呆,写方法直接拒绝;权限边界靠服务端 ACL
 	// PoolSizeMultiplier 默认池容量倍率:连接上限 = 倍率 × 10 × GOMAXPROCS,0 = 默认 1 倍。
 	// 池为全进程共享结构,连接不绑核;GOMAXPROCS 仅作机器规格代理,倍率随部署机自适应。
-	PoolSizeMultiplier int `yaml:"pool_size_multiplier" json:"pool_size_multiplier"`
+	PoolSizeMultiplier int
 
 	// 三个超时按部署环境收紧用,0 = 交给 go-redis 默认(Dial 5s / Read 5s / Write 跟随 Read)。
 	// 不设时行为与本字段引入前逐字一致;负值一律拒绝,「永不超时」不作为可配项。
-	TimeoutDial  time.Duration `yaml:"timeout_dial" json:"timeout_dial"`
-	TimeoutRead  time.Duration `yaml:"timeout_read" json:"timeout_read"`
-	TimeoutWrite time.Duration `yaml:"timeout_write" json:"timeout_write"`
+	TimeoutDial  time.Duration
+	TimeoutRead  time.Duration
+	TimeoutWrite time.Duration
 }
 
 type GTRedis struct {
