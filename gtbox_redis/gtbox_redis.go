@@ -127,6 +127,18 @@ func (gtr *GTRedis) SetEX(key string, value string, ttl time.Duration) error {
 	return err
 }
 
+// SetNX 键不存在时才写入(SET key value NX),返回是否真的写进去了。
+// ttl 为 0 = 持久键;做分布式锁必须给非 0 ttl,否则持锁方崩溃后这把锁永不释放。
+// 返回 false 表示键已存在、本次未写入,不是错误。
+func (gtr *GTRedis) SetNX(key string, value string, ttl time.Duration) (bool, error) {
+	if err := gtr.writeGuard(); err != nil {
+		return false, err
+	}
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
+
+	return gtr.redisClient.SetNX(ctx, aKey, value, ttl).Result()
+}
+
 // Get 获取单条数据
 func (gtr *GTRedis) Get(key string) (string, error) {
 	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)

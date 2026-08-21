@@ -23,6 +23,18 @@ func (gtr *GTRedis) HSet(key string, subKey string, jsonByte []byte) error {
 	return err
 }
 
+// HSetNX Hash类型-字段不存在时才插入,返回是否真的写进去了。
+// 返回 false 表示该字段已存在、本次未写入,不是错误。
+// redis 没有带 TTL 的 HSETNX(过期只能设在整个 hash 键上),要字段级过期得换独立键 + SetNX。
+func (gtr *GTRedis) HSetNX(key string, subKey string, jsonByte []byte) (bool, error) {
+	if err := gtr.writeGuard(); err != nil {
+		return false, err
+	}
+	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)
+
+	return gtr.redisClient.HSetNX(ctx, aKey, subKey, jsonByte).Result()
+}
+
 // HGet Hash类型-获取单条数据
 func (gtr *GTRedis) HGet(key string, subKey string) (string, error) {
 	aKey := fmt.Sprintf("%s:%s", gtr.prefix, key)

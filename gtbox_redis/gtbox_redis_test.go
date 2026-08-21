@@ -119,6 +119,12 @@ func TestReadOnlyGuard(t *testing.T) {
 	if err := ro.SAdd("s", "m"); err == nil {
 		t.Fatal("SAdd on read-only instance should be rejected")
 	}
+	if _, err := ro.SetNX("k", "v", time.Minute); err == nil {
+		t.Fatal("SetNX on read-only instance should be rejected")
+	}
+	if _, err := ro.HSetNX("h", "f", []byte("v")); err == nil {
+		t.Fatal("HSetNX on read-only instance should be rejected")
+	}
 	// 读路径正常(键不存在返回 redis.Nil 属正常读语义)
 	if _, err := ro.Keys("*"); err != nil {
 		t.Fatalf("read on read-only instance should work: %v", err)
@@ -139,6 +145,84 @@ func TestSetEXTTL(t *testing.T) {
 	}
 	if ttl := mr.TTL("ttl:k2"); ttl != 0 {
 		t.Fatalf("persistent key TTL got %v, want 0", ttl)
+	}
+}
+
+func TestSetNX(t *testing.T) {
+	mr, gtr := newTestRedis(t, nil, "nx")
+
+	ok, err := gtr.SetNX("lock", "owner-1", time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok {
+		t.Fatal("first SetNX should write")
+	}
+	if ttl := mr.TTL("nx:lock"); ttl != time.Minute {
+		t.Fatalf("TTL got %v, want 1m", ttl)
+	}
+
+	// 键已存在:返回 false 且不覆盖原值,不算错误
+	ok, err = gtr.SetNX("lock", "owner-2", time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Fatal("second SetNX should not write")
+	}
+	val, err := gtr.Get("lock")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if val != "owner-1" {
+		t.Fatalf("value got %q, want owner-1", val)
+	}
+
+	// ttl 为 0 = 持久键
+	if ok, err = gtr.SetNX("persistent", "v", 0); err != nil || !ok {
+		t.Fatalf("SetNX persistent ok=%v err=%v", ok, err)
+	}
+	if ttl := mr.TTL("nx:persistent"); ttl != 0 {
+		t.Fatalf("persistent key TTL got %v, want 0", ttl)
+	}
+
+	// 过期后同一把锁可以重新拿到
+	mr.FastForward(time.Minute)
+	if ok, err = gtr.SetNX("lock", "owner-2", time.Minute); err != nil || !ok {
+		t.Fatalf("SetNX after expiry ok=%v err=%v", ok, err)
+	}
+}
+
+func TestHSetNX(t *testing.T) {
+	_, gtr := newTestRedis(t, nil, "hnx")
+
+	ok, err := gtr.HSetNX("h", "f", []byte("v1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok {
+		t.Fatal("first HSetNX should write")
+	}
+
+	// 字段已存在:返回 false 且不覆盖,不算错误
+	ok, err = gtr.HSetNX("h", "f", []byte("v2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Fatal("second HSetNX should not write")
+	}
+	val, err := gtr.HGet("h", "f")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if val != "v1" {
+		t.Fatalf("field value got %q, want v1", val)
+	}
+
+	// 同键不同字段互不影响
+	if ok, err = gtr.HSetNX("h", "f2", []byte("v3")); err != nil || !ok {
+		t.Fatalf("HSetNX other field ok=%v err=%v", ok, err)
 	}
 }
 
