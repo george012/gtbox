@@ -10,47 +10,47 @@ import (
 
 // 连接池默认值，与 OPenMysql 原有硬编码一致；GTORMMysqlConfig 对应字段留零值即取这组值。
 const (
-	defaultMysqlMaxOpenConns    = 5
-	defaultMysqlMaxIdleConns    = 2
+	defaultMysqlConnMaxOpen     = 5
+	defaultMysqlConnMaxIdle     = 2
 	defaultMysqlConnMaxIdleTime = time.Minute
 )
 
 // GTORMMysqlConfig 一个 mysql 数据源的连接身份与连接池参数。
-// 连接身份字段(User/DBName/Host/Port)无默认值，零值直接报错——公用层不兜底 localhost/3306。
+// 连接身份字段(DBUser/DBName/DBHost/DBPort)无默认值，零值直接报错——公用层不兜底 localhost/3306。
 // 池参数零值 = 取上面那组默认值；ConnMaxLifetime 零值 = 不限制连接存活时长(database/sql 默认)。
 type GTORMMysqlConfig struct {
-	User            string                         `yaml:"user" json:"user"`
-	Pwd             string                         `yaml:"pwd" json:"pwd"` // 允许为空，对应无密码账号
-	DBName          string                         `yaml:"dbName" json:"db_name"`
-	Host            string                         `yaml:"host" json:"host"`
-	Port            int                            `yaml:"port" json:"port"`
-	TimeZone        gtbox_orm_config.GTORMTimeZone `yaml:"timeZone" json:"time_zone"`
-	MaxOpenConns    int                            `yaml:"maxOpenConns" json:"max_open_conns"`
-	MaxIdleConns    int                            `yaml:"maxIdleConns" json:"max_idle_conns"`
-	ConnMaxIdleTime time.Duration                  `yaml:"connMaxIdleTime" json:"conn_max_idle_time"`
-	ConnMaxLifetime time.Duration                  `yaml:"connMaxLifetime" json:"conn_max_lifetime"`
+	DBUser          string                         `yaml:"db_user" json:"db_user"`
+	DBPwd           string                         `yaml:"db_pwd" json:"db_pwd"` // 允许为空，对应无密码账号
+	DBName          string                         `yaml:"db_name" json:"db_name"`
+	DBHost          string                         `yaml:"db_host" json:"db_host"`
+	DBPort          int                            `yaml:"db_port" json:"db_port"`
+	DBTimeZone      gtbox_orm_config.GTORMTimeZone `yaml:"db_time_zone" json:"db_time_zone"`
+	ConnMaxOpen     int                            `yaml:"conn_max_open" json:"conn_max_open"`
+	ConnMaxIdle     int                            `yaml:"conn_max_idle" json:"conn_max_idle"`
+	ConnMaxIdleTime time.Duration                  `yaml:"conn_max_idle_time" json:"conn_max_idle_time"`
+	ConnMaxLifetime time.Duration                  `yaml:"conn_max_lifetime" json:"conn_max_lifetime"`
 }
 
-// validate 参数校验；MaxIdleConns > MaxOpenConns 时 database/sql 会静默把 idle 压到 open，
+// validate 参数校验；ConnMaxIdle > ConnMaxOpen 时 database/sql 会静默把 idle 压到 open，
 // 这里改为直接拒绝，避免配置写错却查不出来。
 func (cfg *GTORMMysqlConfig) validate() error {
-	if cfg.User == "" {
-		return fmt.Errorf("gtbox_orm_mysql: User is required")
+	if cfg.DBUser == "" {
+		return fmt.Errorf("gtbox_orm_mysql: DBUser is required")
 	}
 	if cfg.DBName == "" {
 		return fmt.Errorf("gtbox_orm_mysql: DBName is required")
 	}
-	if cfg.Host == "" {
-		return fmt.Errorf("gtbox_orm_mysql: Host is required")
+	if cfg.DBHost == "" {
+		return fmt.Errorf("gtbox_orm_mysql: DBHost is required")
 	}
-	if cfg.Port <= 0 || cfg.Port > 65535 {
-		return fmt.Errorf("gtbox_orm_mysql: Port must be in 1-65535, got %d", cfg.Port)
+	if cfg.DBPort <= 0 || cfg.DBPort > 65535 {
+		return fmt.Errorf("gtbox_orm_mysql: DBPort must be in 1-65535, got %d", cfg.DBPort)
 	}
-	if cfg.MaxOpenConns < 0 {
-		return fmt.Errorf("gtbox_orm_mysql: MaxOpenConns must be >= 0, got %d", cfg.MaxOpenConns)
+	if cfg.ConnMaxOpen < 0 {
+		return fmt.Errorf("gtbox_orm_mysql: ConnMaxOpen must be >= 0, got %d", cfg.ConnMaxOpen)
 	}
-	if cfg.MaxIdleConns < 0 {
-		return fmt.Errorf("gtbox_orm_mysql: MaxIdleConns must be >= 0, got %d", cfg.MaxIdleConns)
+	if cfg.ConnMaxIdle < 0 {
+		return fmt.Errorf("gtbox_orm_mysql: ConnMaxIdle must be >= 0, got %d", cfg.ConnMaxIdle)
 	}
 	if cfg.ConnMaxIdleTime < 0 {
 		return fmt.Errorf("gtbox_orm_mysql: ConnMaxIdleTime must be >= 0, got %s", cfg.ConnMaxIdleTime)
@@ -58,20 +58,20 @@ func (cfg *GTORMMysqlConfig) validate() error {
 	if cfg.ConnMaxLifetime < 0 {
 		return fmt.Errorf("gtbox_orm_mysql: ConnMaxLifetime must be >= 0, got %s", cfg.ConnMaxLifetime)
 	}
-	if cfg.MaxOpenConns > 0 && cfg.MaxIdleConns > cfg.MaxOpenConns {
-		return fmt.Errorf("gtbox_orm_mysql: MaxIdleConns(%d) must be <= MaxOpenConns(%d)", cfg.MaxIdleConns, cfg.MaxOpenConns)
+	if cfg.ConnMaxOpen > 0 && cfg.ConnMaxIdle > cfg.ConnMaxOpen {
+		return fmt.Errorf("gtbox_orm_mysql: ConnMaxIdle(%d) must be <= ConnMaxOpen(%d)", cfg.ConnMaxIdle, cfg.ConnMaxOpen)
 	}
 	return nil
 }
 
 // poolParams 返回补齐默认值后的池参数
 func (cfg *GTORMMysqlConfig) poolParams() (maxOpen int, maxIdle int, idleTime time.Duration) {
-	maxOpen, maxIdle, idleTime = cfg.MaxOpenConns, cfg.MaxIdleConns, cfg.ConnMaxIdleTime
+	maxOpen, maxIdle, idleTime = cfg.ConnMaxOpen, cfg.ConnMaxIdle, cfg.ConnMaxIdleTime
 	if maxOpen == 0 {
-		maxOpen = defaultMysqlMaxOpenConns
+		maxOpen = defaultMysqlConnMaxOpen
 	}
 	if maxIdle == 0 {
-		maxIdle = defaultMysqlMaxIdleConns
+		maxIdle = defaultMysqlConnMaxIdle
 	}
 	if idleTime == 0 {
 		idleTime = defaultMysqlConnMaxIdleTime
@@ -97,10 +97,10 @@ func mysqlTimeZoneLocation(timeZone gtbox_orm_config.GTORMTimeZone) (*time.Locat
 // 不依赖 GTORMTimeZone.String() 里那份手写的 %2F。
 func buildMysqlDSN(cfg *GTORMMysqlConfig, loc *time.Location) string {
 	dsnCfg := sqldriver.NewConfig()
-	dsnCfg.User = cfg.User
-	dsnCfg.Passwd = cfg.Pwd
+	dsnCfg.User = cfg.DBUser
+	dsnCfg.Passwd = cfg.DBPwd
 	dsnCfg.Net = "tcp"
-	dsnCfg.Addr = fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
+	dsnCfg.Addr = fmt.Sprintf("%s:%d", cfg.DBHost, cfg.DBPort)
 	dsnCfg.DBName = cfg.DBName
 	dsnCfg.ParseTime = true
 	dsnCfg.Loc = loc

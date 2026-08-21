@@ -55,7 +55,7 @@ func New(cfg GTORMMysqlConfig) (*GTORMMysql, error) {
 
 // openMysqlDB 建连 + 连接池配置,New 与 OPenMysql / OpenWithConfig 共用这一条路径
 func openMysqlDB(cfg *GTORMMysqlConfig) (*gorm.DB, error) {
-	loc, err := mysqlTimeZoneLocation(cfg.TimeZone)
+	loc, err := mysqlTimeZoneLocation(cfg.DBTimeZone)
 	if err != nil {
 		return nil, fmt.Errorf("gtbox_orm_mysql: load timezone failed, %w", err)
 	}
@@ -104,18 +104,18 @@ func (aMysql *GTORMMysql) OpenWithConfig(cfg GTORMMysqlConfig) error {
 }
 
 // OPenMysql 打开当前句柄的连接(原有入口,签名与回调契约不变)。
-// 连接池取包内默认值(MaxOpen 5 / MaxIdle 2 / IdleTime 1min);要自定义池参数用 OpenWithConfig。
+// 连接池取包内默认值(ConnMaxOpen 5 / ConnMaxIdle 2 / IdleTime 1min);要自定义池参数用 OpenWithConfig。
 func (aMysql *GTORMMysql) OPenMysql(dbUser string, dbPwd string, dbName string, dbAddress string, dbPort int, timeZone gtbox_orm_config.GTORMTimeZone, endFunc func(err error)) {
 	aMysql.mux.Lock()
 	defer aMysql.mux.Unlock()
 
 	cfg := &GTORMMysqlConfig{
-		User:     dbUser,
-		Pwd:      dbPwd,
-		DBName:   dbName,
-		Host:     dbAddress,
-		Port:     dbPort,
-		TimeZone: timeZone,
+		DBUser:     dbUser,
+		DBPwd:      dbPwd,
+		DBName:     dbName,
+		DBHost:     dbAddress,
+		DBPort:     dbPort,
+		DBTimeZone: timeZone,
 	}
 	aMysql.MysqlDB, aMysql.MysqlError = openMysqlDB(cfg)
 	if aMysql.MysqlError != nil {
