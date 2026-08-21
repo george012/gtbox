@@ -94,7 +94,7 @@ func (gtSqlite *GTORMSqlite) OpenWithConfig(cfg GTORMSqliteConfig) error {
 }
 
 // OpenSqlite 打开当前句柄的库文件(原有入口,签名不变)。
-// 连接池取包内默认值(MaxOpen 1 / MaxIdle 1);要自定义池参数用 OpenWithConfig。
+// 连接池取包内默认值(ConnMaxOpen 1 / ConnMaxIdle 1);要自定义池参数用 OpenWithConfig。
 func (gtSqlite *GTORMSqlite) OpenSqlite(sqlitePath string) {
 	gtSqlite.mux.Lock()
 	defer gtSqlite.mux.Unlock()

@@ -37,8 +37,8 @@ func TestGTORMSqliteConfigValidate(t *testing.T) {
 	}{
 		{"合法配置", GTORMSqliteConfig{DBFilePath: "app.db"}, false},
 		{"缺 DBFilePath", GTORMSqliteConfig{}, true},
-		{"MaxOpenConns 负数", GTORMSqliteConfig{DBFilePath: "app.db", MaxOpenConns: -1}, true},
-		{"MaxIdleConns 超过 MaxOpenConns", GTORMSqliteConfig{DBFilePath: "app.db", MaxOpenConns: 1, MaxIdleConns: 4}, true},
+		{"ConnMaxOpen 负数", GTORMSqliteConfig{DBFilePath: "app.db", ConnMaxOpen: -1}, true},
+		{"ConnMaxIdle 超过 ConnMaxOpen", GTORMSqliteConfig{DBFilePath: "app.db", ConnMaxOpen: 1, ConnMaxIdle: 4}, true},
 		{"ConnMaxIdleTime 负数", GTORMSqliteConfig{DBFilePath: "app.db", ConnMaxIdleTime: -time.Second}, true},
 	}
 
@@ -60,8 +60,8 @@ func TestGTORMSqliteConfigValidate(t *testing.T) {
 // TestGTORMSqliteConfigPoolParams 池参数零值取 sqlite 单写默认(1/1),不套用 mysql 那组
 func TestGTORMSqliteConfigPoolParams(t *testing.T) {
 	maxOpen, maxIdle, idleTime := (&GTORMSqliteConfig{}).poolParams()
-	if maxOpen != defaultSqliteMaxOpenConns || maxIdle != defaultSqliteMaxIdleConns || idleTime != 0 {
-		t.Fatalf("零值池参数=%d/%d/%s, want %d/%d/0", maxOpen, maxIdle, idleTime, defaultSqliteMaxOpenConns, defaultSqliteMaxIdleConns)
+	if maxOpen != defaultSqliteConnMaxOpen || maxIdle != defaultSqliteConnMaxIdle || idleTime != 0 {
+		t.Fatalf("零值池参数=%d/%d/%s, want %d/%d/0", maxOpen, maxIdle, idleTime, defaultSqliteConnMaxOpen, defaultSqliteConnMaxIdle)
 	}
 }
 
